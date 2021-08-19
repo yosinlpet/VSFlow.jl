@@ -1,7 +1,7 @@
 # VSFlow
 
 <p align="center">
-<img width="400px" src="https://github.com/yosinlpet/VSFlow.jl/docs/logo.svg"/>
+<img width="200px" src="https://github.com/yosinlpet/VSFlow.jl/blob/main/docs/logo.svg"/>
 </p>
 
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://yosinlpet.github.io/VSFlow.jl/stable)
