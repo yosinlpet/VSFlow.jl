@@ -1,5 +1,9 @@
 # VSFlow
 
+<p align="center">
+<img width="400px" src="https://github.com/yosinlpet/VSFlow.jl/docs/logo.svg"/>
+</p>
+
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://yosinlpet.github.io/VSFlow.jl/stable)
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://yosinlpet.github.io/VSFlow.jl/dev)
 [![Build Status](https://github.com/yosinlpet/VSFlow.jl/workflows/CI/badge.svg)](https://github.com/yosinlpet/VSFlow.jl/actions)
