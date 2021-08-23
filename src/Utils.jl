@@ -3,9 +3,8 @@
 # Author            : Denis N Dumoulin <denis.dumoulin@uclouvain.be>
 # Date              : 14.03.2019
 # Last Modified Date: 08.12.2020
-"""
-Constant values for Gauss quadrature in triangles
-"""
+
+#Constant values for Gauss quadrature in triangles
 const wgauss = [4.40470137440027E-04 2.73540341982354E-03 6.06288503309780E-03 7.32940618020361E-03 4.35981888065413E-03 2.54894897110758E-03 1.58294584351310E-02 3.50852038616632E-02 4.24144130415724E-02 2.52297599892837E-02 4.35986399676418E-03 2.70755855459964E-02 6.00116828031788E-02 7.25479695591883E-02 4.31543838150997E-02 2.80482254237839E-03 1.74184820315194E-02 3.86071952834637E-02 4.66721394461879E-02 2.77624230060559E-02 3.69367248237134E-04 2.29384093975323E-03 5.08418385425357E-03 6.14625683304730E-03 3.65603514489964E-03]
 
 const xgauss = [5.65222820508010E-03 5.65222820508010E-03 5.65222820508010E-03 5.65222820508010E-03 5.65222820508010E-03 7.34303717426523E-02 7.34303717426523E-02 7.34303717426523E-02 7.34303717426523E-02 7.34303717426523E-02 2.84957404462558E-01 2.84957404462558E-01 2.84957404462558E-01 2.84957404462558E-01 2.84957404462558E-01 6.19482264084778E-01 6.19482264084778E-01 6.19482264084778E-01 6.19482264084778E-01 6.19482264084778E-01 9.15758083004698E-01 9.15758083004698E-01 9.15758083004698E-01 9.15758083004698E-01 9.15758083004698E-01]
@@ -13,7 +12,9 @@ const xgauss = [5.65222820508010E-03 5.65222820508010E-03 5.65222820508010E-03 5
 const ygauss = [5.62028052139780E-03 7.30153265243790E-02 2.83346760183808E-01 6.15980808959171E-01 9.10582009338909E-01 5.23718298680677E-03 6.80383522483882E-02 2.64032876322051E-01 5.73993451145053E-01 8.48513626543325E-01 4.04158392633041E-03 5.25058436021453E-02 2.03756682104520E-01 4.42956206000591E-01 6.54806036556072E-01 2.15077307947324E-03 2.79415588029271E-02 1.08431346378371E-01 2.35723988569175E-01 3.48462192391012E-01 4.76154539290863E-04 6.18591528127868E-03 2.40053580139315E-02 5.21863734710916E-02 7.71452164162586E-02]
 
 """
-Rotate frame by angle "θ" in the clockwise direction.
+    `rotate(X, Y, θ)`
+
+Rotate frame by angle `θ` in the clockwise direction.
 """
 function rotate(X, Y, θ)
 	x = X*cos(θ) - Y*sin(θ)
@@ -22,12 +23,16 @@ function rotate(X, Y, θ)
 end
 
 """
-Squared norm of "x".
+    `norm2(x)`
+
+Squared norm of `x`.
 """
 norm2(x...) = sum(x.^2)
 
 """
-Integrate using Simpson's rule.
+    `simps(f, x)`
+
+Integrate function `f` using Simpson's rule.
 """
 
 function simps(f, x)
@@ -51,22 +56,10 @@ function simps(f, x)
 	return result
 end
 
-#= function simps(y,x) =#
-#= 	n = length(y) =#
-#= 	length(y) == length(x) || error("Dimension mismatch between x and f(x).") =#
-#=     !iseven(n) || error("Simpson rule requires ODD length input (EVEN number of intervals)") =#
-#= 	r = zero(zero(eltype(x))*zero(eltype(y))) =#
-#= 	for i in 3:2:n =#
-#= 		d1 = x[i-1] - x[i-2] =#
-#= 		d2 = x[i] - x[i-1] =#
-#= 		h = x[i] - x[i-2] =#
-#= 		r += (y[i-2] * (2 - d2/d1) + y[i-1]*h^2/(d1*d2) + y[i] * (2 - d1/d2))h =#
-#= 	end =#
-#= 	r / 6.0 =#
-#= end =#
-
 """
-Integrate using trapeze rule.
+    `trapz(f, x)`
+
+Integrate function `f` using trapeze rule.
 """
 function trapz(y, x)
 	n = length(y)
@@ -80,38 +73,42 @@ function trapz(y, x)
 end
 
 """
-Backward differences
-	Compute the backward difference of nth order.
+    `backwarddifference(x, old_x, dt)`
+
+Compute the backward difference of nth order according to the length of `old_x`.
 """
-function backwarddifference(x, old_x, dx)
+function backwarddifference(x, old_x, dt)
 	n = length(old_x)
 	0 < n < 5 || error("5+th order Backward Difference undefined.")
 	A = [-1 1 0 0 0;
 		 -1.5 2 -.5 0 0;
 		 -11/6 3 -1.5 1/3 0;
 		 -25/12 4 -3 4/3 -.25]
-	-sum(A[n, 1:n+1].*[x, old_x...])/dx
+	-sum(A[n, 1:n+1].*[x, old_x...])/dt
 end
 
 """
-function customfourthorder(x, old_x, dx)
-	Compute the 4th order time derivative at t using
+    `customfourthorder(x, old_x, dt)`
+
+Compute the 4th order time derivative at t using
 	t-1/2
 	t-3/2
 	t-5/2
 	t-7/2.
 """
-function customfourthorder(x, old_x, dx)
+function customfourthorder(x, old_x, dt)
 	A = [.5 1.5 2.5 3.5;
 		 1 9 25 49;
 		 1 27 125 343;
 		 1 81 625 2401]
 	a = A\[1 0 0 0]'
-	return sum([sum(a), -a...].*[x, old_x...])/dx
+	return sum([sum(a), -a...].*[x, old_x...])/dt
 end
 
 """
-Centered differences
+ `centereddifference(neighbours, dx)`
+
+Centered differences. Order depends on length of neighbours.
 """
 function centereddifference(neighbours, dx)
 	n = length(neighbours)
@@ -124,14 +121,21 @@ function centereddifference(neighbours, dx)
 	end
 end
 
-"""Assert the continuity of panel angles"""
+"""
+    `checkangle(θ)`
+
+Assert the continuity of panel angles by subtracting 2π if necessary.
+"""
 function checkangle(θ)
 	θ > .5π && return θ-2π
 	return θ
 end
 
 """
-Heave & Pitch foil
+    `heavepitch(t, h0, αmax, ψ1, ψ2, strouhal)`
+
+Return the vector `[x, ẋ, ẍ]` corresponding to a heaving & pitching motion where
+`x = [X, Y, α]`.
 """
 function heavepitch(t, h0, αmax, ψ1, ψ2, strouhal)
 	ω = strouhal*pi/h0
@@ -151,6 +155,12 @@ function heavepitch(t, h0, αmax, ψ1, ψ2, strouhal)
 end
 
 
+"""
+    `circularmotion(t, R, strouhal)`
+
+Return the vector `[x, ẋ, ẍ]` corresponding to a circular motion of radius `R` where
+`x = [X, Y, α]`.
+"""
 function circularmotion(t, R, strouhal)
 	ω = .5strouhal*pi/R
 	ωt = ω*t
@@ -167,16 +177,17 @@ function circularmotion(t, R, strouhal)
 end
 
 """
-function gausslegendretriangle(f, x, y)
-	Computes the integral of function f(x,y)
-	on the standard triangle abc:
-	a (0; 0)
-	b (1; 0)
-	c (0; 1)
-	using 25 points per dimension.
-	fx, fy are the mapping from the standard triangle to the real one.
-	Coefficients are extracted from Rathod et al (2004)
-	"Gauss Legendre quadrature over a triangle"
+    `gausslegendretriangle(f, fx, fy)`
+
+Computes the integral of function `f(x,y)`
+on the standard triangle abc:
+a (0; 0)
+b (1; 0)
+c (0; 1)
+using 25 points per dimension.
+fx, fy are the mapping from the standard triangle to the real one.
+Coefficients are extracted from Rathod et al (2004)
+"Gauss Legendre quadrature over a triangle"
 """
 function gausslegendretriangle(f, fx, fy)
 	x = fx.(xgauss, ygauss)
@@ -185,10 +196,11 @@ function gausslegendretriangle(f, fx, fy)
 end
 
 """
-function get∫fdV(XY, f)
-	Computes the integral of 'f' on the triangle created by the
-	set of points XYs, Ys using a Gauss-Legendre quadrature.
-	f can return a vector.
+    `get∫fdV(XY, f)`
+
+Computes the integral of `f` on the triangle created by the
+set of points `XY`, `Y` using a Gauss-Legendre quadrature.
+`f` can return a vector.
 """
 function get∫fdV(XY1, XY2, XY3, f)
 	J =	(XY3[1] - XY2[1])*(XY1[2] - XY2[2]) - (XY1[1] - XY2[1])*(XY3[2] - XY2[2])
@@ -199,9 +211,10 @@ function get∫fdV(XY1, XY2, XY3, f)
 end
 
 """
-cubicspline(z, X, U)
-	Computes the cubic spline at point z ∈ [0, 1], build from
-	interpolation of points (X, U) as well as its derivative.
+    `cubicspline(z, X, U)`
+
+Computes the cubic spline at point `z ∈ [0, 1]`, build from
+interpolation of points `(X, U)` as well as its derivative.
 """
 function cubicspline(z, X, U)
 	@assert length(X) == length(U) "X and U must have the same length!"
@@ -231,9 +244,10 @@ function cubicspline(z, X, U)
 end
 
 """
-function getbodymass(XYm, XYt, XYb)
-	Integrate the constant and uniform unit density on the body (fish).
-	Integral computed with 25-point Gauss quadrature.
+    `getbodymass(XYm, XYt, XYb)`
+
+Integrate the constant and uniform unit density on the body.
+Integral computed with 25-point Gauss quadrature.
 """
 function getbodymass(XYm, XYt, XYb)
 	I12 = sum(map((XY1, XY2, XY3)->get∫fdV(XY1, XY2, XY3, (x, y)->1), XYm[1:end-1], XYm[2:end], XYt[2:end]))
@@ -252,9 +266,10 @@ function getinertia(XYm, XYt, XYb)
 end
 
 """
-function getcenterofmass(xm, ym, xb, yb, xt, yt)
-	Compute the center of mass of the body (fish).
-	Integrals computed with 25-point Gauss quadrature.
+    `getcenterofmass(xm, ym, xb, yb, xt, yt)`
+
+Compute the center of mass of the body.
+Integrals computed with 25-point Gauss quadrature.
 """
 function getcenterofmass(xm, ym, xb, yb, xt, yt)
 	XYm = map((x,y)->[x, y], xm, ym)
@@ -269,9 +284,10 @@ function getcenterofmass(xm, ym, xb, yb, xt, yt)
 end
 
 """
-function getcenterofmassvelocity(xm, ym, xb, yb, xt, yt)
-	Compute the velocity of the center of mass of the body (fish).
-	Integrals computed with bi-linear assumption on quadrilaterals.
+    `getcenterofmassvelocity(xm, ym, xb, yb, xt, yt, ub, vb, ut, vt)`
+
+Compute the velocity of the center of mass of the body.
+Integrals computed with bi-linear assumption on quadrilaterals.
 """
 function getcenterofmassvelocity(xm, ym, xb, yb, xt, yt, ub, vb, ut, vt)
 	XYm = map((x,y)->[x, y], xm, ym)
@@ -286,11 +302,12 @@ function getcenterofmassvelocity(xm, ym, xb, yb, xt, yt, ub, vb, ut, vt)
 end
 
 """
-function correctvelocity(xm, ym, xb, yb, xt, yt, ut, vt, ub, vb)
-	Compute the angular velocity (ratio between angular impulse and
-	scalar inertia moment).
-	Integrals computed with bi-linear assumption on quadrilaterals,
-	and 25-point Gauss quadrature.
+    `correctvelocity(xm, ym, xb, yb, xt, yt, ub, vb, ut, vt)`
+
+Compute the angular velocity (ratio between angular impulse and
+scalar inertia moment).
+Integrals computed with bi-linear assumption on quadrilaterals,
+and 25-point Gauss quadrature.
 """
 function correctvelocity(xm, ym, xb, yb, xt, yt, ub, vb, ut, vt)
 	XYm = map((x,y)->[x, y], xm, ym)
