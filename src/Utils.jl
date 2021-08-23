@@ -106,7 +106,7 @@ function customfourthorder(x, old_x, dt)
 end
 
 """
- `centereddifference(neighbours, dx)`
+    `centereddifference(neighbours, dx)`
 
 Centered differences. Order depends on length of neighbours.
 """
