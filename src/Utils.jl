@@ -53,7 +53,7 @@ end
 
 #= function simps(y,x) =#
 #= 	n = length(y) =#
-#= 	length(y) == length(x) || error("Dimension mismatch between x and f(x).") =# 
+#= 	length(y) == length(x) || error("Dimension mismatch between x and f(x).") =#
 #=     !iseven(n) || error("Simpson rule requires ODD length input (EVEN number of intervals)") =#
 #= 	r = zero(zero(eltype(x))*zero(eltype(y))) =#
 #= 	for i in 3:2:n =#
@@ -70,7 +70,7 @@ Integrate using trapeze rule.
 """
 function trapz(y, x)
 	n = length(y)
-	length(y) == length(x) || error("Dimension mismatch between x and f(x).") 
+	length(y) == length(x) || error("Dimension mismatch between x and f(x).")
 
 	r = zero(zero(eltype(x))*zero(eltype(y)))
 	for i in 2:n
@@ -80,8 +80,8 @@ function trapz(y, x)
 end
 
 """
-Backward differences 
-	Compute the backward difference of nth order. 
+Backward differences
+	Compute the backward difference of nth order.
 """
 function backwarddifference(x, old_x, dx)
 	n = length(old_x)
@@ -109,6 +109,7 @@ function customfourthorder(x, old_x, dx)
 	a = A\[1 0 0 0]'
 	return sum([sum(a), -a...].*[x, old_x...])/dx
 end
+
 """
 Centered differences
 """
@@ -116,7 +117,7 @@ function centereddifference(neighbours, dx)
 	n = length(neighbours)
 	if n == 2
 		return [-.5 .5]*neighbours /dx
-	elseif n == 4 
+	elseif n == 4
 		return [1/12 -2/3 2/3 -1/12]*neighbours /dx
 	else
 		error("6+th order Backward Difference undefined.")
@@ -137,10 +138,10 @@ function heavepitch(t, h0, αmax, ψ1, ψ2, strouhal)
 	Y = h0*sin(ω*t + deg2rad(ψ1))
 	Ẏ = ω*h0*cos(ω*t + deg2rad(ψ1))
 	Ÿ = -(ω^2)*h0*sin(ω*t + deg2rad(ψ1))
-	Y⃛ = -(ω^3)*h0*cos(ω*t + deg2rad(ψ1))	
+	Y⃛ = -(ω^3)*h0*cos(ω*t + deg2rad(ψ1))
 
 	αh = atan(-Ẏ)
-	α̇h = -Ÿ / (1+Ẏ^2) 
+	α̇h = -Ÿ / (1+Ẏ^2)
 	α̈h = 2Ẏ*Ÿ^2/(1+Ẏ^2)^2 - Y⃛/(1 + Ẏ^2)
 
 	α = deg2rad(αmax)*sin(ω*t + deg2rad(ψ2)) - αh
@@ -193,14 +194,14 @@ function get∫fdV(XY1, XY2, XY3, f)
 	J =	(XY3[1] - XY2[1])*(XY1[2] - XY2[2]) - (XY1[1] - XY2[1])*(XY3[2] - XY2[2])
 	x(u, v)	= XY2[1] + u*(XY3[1] - XY2[1]) + v*(XY1[1] - XY2[1])
 	y(u, v)	= XY2[2] + u*(XY3[2] - XY2[2]) + v*(XY1[2] - XY2[2])
-	Is = gausslegendretriangle(f, x, y) 
+	Is = gausslegendretriangle(f, x, y)
 	return abs(J).*Is
 end
 
 """
 cubicspline(z, X, U)
 	Computes the cubic spline at point z ∈ [0, 1], build from
-	interpolation of points (X, U) as well as its derivative. 
+	interpolation of points (X, U) as well as its derivative.
 """
 function cubicspline(z, X, U)
 	@assert length(X) == length(U) "X and U must have the same length!"
@@ -226,7 +227,7 @@ function cubicspline(z, X, U)
 	x = (z*ones(n+1) - X) ./ (circshift(X, -1) - X)
 	i = findfirst(0 .≤ x[1:end] .≤ 1)
 	return a[i] + b[i]*x[i] + c[i]*x[i]^2 + d[i]*x[i]^3
-		
+
 end
 
 """
@@ -298,8 +299,8 @@ function correctvelocity(xm, ym, xb, yb, xt, yt, ub, vb, ut, vt)
 	diags1 = (XYb[2:end] - XYt[1:end-1])
 	diags2 = (XYb[1:end-1] - XYt[2:end])
 	Areas = .5abs.(map((xy1, xy2)->xy1[1]*xy2[2] - xy1[2]*xy2[1], diags1, diags2))
-	height1 = map((x, y, u, v)->x*v - u*y, xt, yt, ut, vt) 
-	height3 = map((x, y, u, v)->x*v - u*y, xb, yb, ub, vb) 
+	height1 = map((x, y, u, v)->x*v - u*y, xt, yt, ut, vt)
+	height3 = map((x, y, u, v)->x*v - u*y, xb, yb, ub, vb)
 	I = sum(.25Areas.*(height1[1:end-1] .+ height1[2:end] .+ height3[1:end-1] .+ height3[2:end]))
 	J = getinertia(XYm, XYt, XYb)
 	return I/J, J

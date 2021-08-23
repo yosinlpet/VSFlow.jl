@@ -5,7 +5,6 @@
 # Last Modified Date: 04.03.2021
 include("Utils.jl")
 using LinearAlgebra
-#= using FMMLIB2D =#
 
 const pi2_inv = .5/pi
 const sq3_inv = 1/sqrt(3.)
