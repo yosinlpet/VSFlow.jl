@@ -7,7 +7,6 @@ makedocs(;
     modules=[VSFlow],
     authors="Denis Dumoulin",
     repo="https://github.com/yosinlpet/VSFlow.jl/blob/{commit}{path}#{line}",
-    devbranch="main",
     sitename="VSFlow.jl",
     format=Documenter.HTML(;
         prettyurls=get(ENV, "CI", "false") == "true",
@@ -22,4 +21,5 @@ makedocs(;
 
 deploydocs(;
     repo="github.com/yosinlpet/VSFlow.jl",
+    devbranch="main"
 )
