@@ -12,7 +12,7 @@ const xgauss = [5.65222820508010E-03 5.65222820508010E-03 5.65222820508010E-03 5
 const ygauss = [5.62028052139780E-03 7.30153265243790E-02 2.83346760183808E-01 6.15980808959171E-01 9.10582009338909E-01 5.23718298680677E-03 6.80383522483882E-02 2.64032876322051E-01 5.73993451145053E-01 8.48513626543325E-01 4.04158392633041E-03 5.25058436021453E-02 2.03756682104520E-01 4.42956206000591E-01 6.54806036556072E-01 2.15077307947324E-03 2.79415588029271E-02 1.08431346378371E-01 2.35723988569175E-01 3.48462192391012E-01 4.76154539290863E-04 6.18591528127868E-03 2.40053580139315E-02 5.21863734710916E-02 7.71452164162586E-02]
 
 """
-    `rotate(X, Y, θ)`
+    rotate(X, Y, θ)
 
 Rotate frame by angle `θ` in the clockwise direction.
 """
@@ -23,14 +23,14 @@ function rotate(X, Y, θ)
 end
 
 """
-    `norm2(x)`
+    norm2(x)
 
 Squared norm of `x`.
 """
 norm2(x...) = sum(x.^2)
 
 """
-    `simps(f, x)`
+    simps(f, x)
 
 Integrate function `f` using Simpson's rule.
 """
@@ -57,7 +57,7 @@ function simps(f, x)
 end
 
 """
-    `trapz(f, x)`
+    trapz(f, x)
 
 Integrate function `f` using trapeze rule.
 """
@@ -73,7 +73,7 @@ function trapz(y, x)
 end
 
 """
-    `backwarddifference(x, old_x, dt)`
+    backwarddifference(x, old_x, dt)
 
 Compute the backward difference of nth order according to the length of `old_x`.
 """
@@ -88,7 +88,7 @@ function backwarddifference(x, old_x, dt)
 end
 
 """
-    `customfourthorder(x, old_x, dt)`
+    customfourthorder(x, old_x, dt)
 
 Compute the 4th order time derivative at t using
 	t-1/2
@@ -106,7 +106,7 @@ function customfourthorder(x, old_x, dt)
 end
 
 """
-    `centereddifference(neighbours, dx)`
+    centereddifference(neighbours, dx)
 
 Centered differences. Order depends on length of neighbours.
 """
@@ -122,7 +122,7 @@ function centereddifference(neighbours, dx)
 end
 
 """
-    `checkangle(θ)`
+    checkangle(θ)
 
 Assert the continuity of panel angles by subtracting 2π if necessary.
 """
@@ -132,7 +132,7 @@ function checkangle(θ)
 end
 
 """
-    `heavepitch(t, h0, αmax, ψ1, ψ2, strouhal)`
+    heavepitch(t, h0, αmax, ψ1, ψ2, strouhal)
 
 Return the vector `[x, ẋ, ẍ]` corresponding to a heaving & pitching motion where
 `x = [X, Y, α]`.
@@ -156,7 +156,7 @@ end
 
 
 """
-    `circularmotion(t, R, strouhal)`
+    circularmotion(t, R, strouhal)
 
 Return the vector `[x, ẋ, ẍ]` corresponding to a circular motion of radius `R` where
 `x = [X, Y, α]`.
@@ -177,7 +177,7 @@ function circularmotion(t, R, strouhal)
 end
 
 """
-    `gausslegendretriangle(f, fx, fy)`
+    gausslegendretriangle(f, fx, fy)
 
 Computes the integral of function `f(x,y)`
 on the standard triangle abc:
@@ -196,7 +196,7 @@ function gausslegendretriangle(f, fx, fy)
 end
 
 """
-    `get∫fdV(XY, f)`
+    get∫fdV(XY, f)
 
 Computes the integral of `f` on the triangle created by the
 set of points `XY`, `Y` using a Gauss-Legendre quadrature.
@@ -211,7 +211,7 @@ function get∫fdV(XY1, XY2, XY3, f)
 end
 
 """
-    `cubicspline(z, X, U)`
+    cubicspline(z, X, U)
 
 Computes the cubic spline at point `z ∈ [0, 1]`, build from
 interpolation of points `(X, U)` as well as its derivative.
@@ -244,7 +244,7 @@ function cubicspline(z, X, U)
 end
 
 """
-    `getbodymass(XYm, XYt, XYb)`
+    getbodymass(XYm, XYt, XYb)
 
 Integrate the constant and uniform unit density on the body.
 Integral computed with 25-point Gauss quadrature.
@@ -266,7 +266,7 @@ function getinertia(XYm, XYt, XYb)
 end
 
 """
-    `getcenterofmass(xm, ym, xb, yb, xt, yt)`
+    getcenterofmass(xm, ym, xb, yb, xt, yt)
 
 Compute the center of mass of the body.
 Integrals computed with 25-point Gauss quadrature.
@@ -284,7 +284,7 @@ function getcenterofmass(xm, ym, xb, yb, xt, yt)
 end
 
 """
-    `getcenterofmassvelocity(xm, ym, xb, yb, xt, yt, ub, vb, ut, vt)`
+    getcenterofmassvelocity(xm, ym, xb, yb, xt, yt, ub, vb, ut, vt)
 
 Compute the velocity of the center of mass of the body.
 Integrals computed with bi-linear assumption on quadrilaterals.
@@ -302,7 +302,7 @@ function getcenterofmassvelocity(xm, ym, xb, yb, xt, yt, ub, vb, ut, vt)
 end
 
 """
-    `correctvelocity(xm, ym, xb, yb, xt, yt, ub, vb, ut, vt)`
+    correctvelocity(xm, ym, xb, yb, xt, yt, ub, vb, ut, vt)
 
 Compute the angular velocity (ratio between angular impulse and
 scalar inertia moment).

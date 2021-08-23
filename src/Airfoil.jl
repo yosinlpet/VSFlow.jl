@@ -5,7 +5,7 @@
 # Last Modified Date: 03.03.2021
 
 """
-    `gaw1(x)`
+    gaw1(x)
 
 Return the coordinates of a GAW1 airfoil.
 """
@@ -16,7 +16,7 @@ function gaw1(x)
 end
 
 """
-    `naca00(x; kwargs...)`
+    naca00(x; kwargs...)
 
 Return the coordinates of a NACA00ZZ airfoil.
 
@@ -30,7 +30,7 @@ function naca00(x; ZZ=12)
 end
 
 """
-    `circle(x; kwargs...)`
+    circle(x; kwargs...)
 
 Return the coordinates of a circle.
 
@@ -44,7 +44,7 @@ function circle(x; R=.5)
 end
 
 """
-    `ellipse(x; kwargs...)`
+    ellipse(x; kwargs...)
 
 Return the coordinates of an ellipse.
 
@@ -64,7 +64,7 @@ const st = .95
 const wt = .01
 
 """
-    `initiator(ξ, T)`
+    initiator(ξ, T)
 
 Smooth increase from 0 to 1 in half a period `T` and its time derivative.
 """
@@ -76,7 +76,7 @@ function initiator(ξ, T)
 end
 
 """
-    `carlingfish(s, t, T)`
+    carlingfish(s, t, T)
 
 Return the curvature of a curve of unit length associated with the motion of a
 carling fish of period `T`. Its time derivative is computed too.
@@ -104,7 +104,7 @@ function deadfish(s, t, T)
 end
 
 """
-    `splinefish(s, t, T, X, K)`
+    splinefish(s, t, T, X, K)
 
 Return the curvature of a curve of unit length associated with the motion of a
 fish following a cubic spline.
@@ -133,7 +133,7 @@ function fastfish(s, t, T)
 end
 
 """
-    `swimmerthickness(s)`
+    swimmerthickness(s)
 
 Return the thickness of the swimming body along its coordinate `s`.
 """
