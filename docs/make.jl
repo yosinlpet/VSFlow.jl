@@ -20,6 +20,6 @@ makedocs(;
 )
 
 deploydocs(;
-    repo="github.com/yosinlpet/VSFlow.jl",
+    repo="github.com/yosinlpet/VSFlow.jl.git",
     devbranch="main"
 )
