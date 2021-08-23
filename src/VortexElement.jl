@@ -5,6 +5,7 @@
 # Last Modified Date: 04.03.2021
 include("Utils.jl")
 using LinearAlgebra
+#= using FMMLIB2D =#
 
 const pi2_inv = .5/pi
 const sq3_inv = 1/sqrt(3.)
@@ -13,6 +14,11 @@ const w23 = (18 + sqrt(30))/36
 const X14 = sqrt((15 + 2sqrt(30))/35)
 const X23 = sqrt((15 - 2sqrt(30))/35)
 
+"""
+    VortexPoint
+
+Structure to represent a point vortex.
+"""
 mutable struct VortexPoint
 	X::Float64
 	Y::Float64
@@ -22,6 +28,11 @@ end
 
 VortexPoint(X, Y, Γ) = VortexPoint(X, Y, Γ, [0., 0.])
 
+"""
+    blobkernel(X, Y, vpX, vpY, δ)
+
+Return the velocity at point `X`, `Y` induced by a vortex point located at `vpX`,`vpY`.
+"""
 function blobkernel(X, Y, vpX, vpY, δ)
 	## Gaussian regularization kernel
 	x2 = norm2(X - vpX, Y - vpY)
@@ -34,14 +45,19 @@ function blobkernel(X, Y, vpX, vpY, δ)
 
 end
 
+"""
+    getinducedvelocity(vp::VortexPoint, X, Y, δ)
+
+Return the velocity intuced by vortex `vp` at location `X`, `Y`.
+"""
 function getinducedvelocity(vp::VortexPoint, X, Y, δ)
 	return vp.Γ*blobkernel(X, Y, vp.X, vp.Y, δ)
 end
 
 """
-vortexcloudvelocity
-	This function uses anti-symmetry to obtain the velocities induced by
-	the vortex cloud on itself
+    getcloudvelocities(vortex_points, δ)
+
+Return the velocity induced by all other vortices in the cloud.
 """
 function getcloudvelocities(vortex_points, δ)
 	Nv = length(vortex_points)
@@ -59,16 +75,18 @@ function getcloudvelocities(vortex_points, δ)
 	return map((u, v)->[u, v], U*Γs, V*Γs)
 end
 
-"""getvelocitygradient(vp::VortexPoint, X, Y, θ)
-	Computes the gradient of induced velocity at position 'X, Y'
-    due to a change of position of 'vp'
+"""
+    getvelocitygradient(vp::VortexPoint, X, Y, θ)
 
-    Input :
-        -vp : sensitive point vortex
-        -X  : X position where velocity is computed
-        -Y  : Y position where velocity is computed
-        -θ  : rotation angle
-        -δ  : Gaussian kernel cut-off width
+Computes the gradient of induced velocity at position `X`, `Y`
+due to a change of position of `vp`.
+
+Input :
+    -`vp` : sensitive point vortex
+    -`X`  : X position where velocity is computed
+    -`Y`  : Y position where velocity is computed
+    -`θ`  : rotation angle
+    -`δ`  : Gaussian kernel cut-off width
 """
 function getvelocitygradient(vp::VortexPoint, X, Y, θ, δ)
 	coeff = -pi2_inv/norm2(X - vp.X, Y - vp.Y, δ)^2
@@ -80,6 +98,11 @@ end
 abstract type Panel
 end
 
+"""
+    BuildPanel(T, X1, Y1, X2, Y2, profID)
+
+Build a panel of type `T` starting at point `X1`, `Y1` and ending at point `X2`, `Y2`.
+"""
 function BuildPanel(T, X1, Y1, X2, Y2, profID)
 	Xc = .5 * (X1+X2)
 	Yc = .5 * (Y1+Y2)
@@ -88,15 +111,31 @@ function BuildPanel(T, X1, Y1, X2, Y2, profID)
 	return T(X1, Y1, X2, Y2, Xc, Yc, b, θ, profID)
 end
 
+"""
+    inpanelframe(p::Panel, X, Y)
+
+Return the point `X`, `Y` in the frame of panel `p`.
+"""
 function inpanelframe(p::Panel, X, Y)
 	X, Y = rotate(X - p.Xc, Y - p.Yc, π+p.θ)
 end
 
+"""
+    inreferenceframe(p::Panel, X, Y)
+
+Return the point `x`, `y` in the reference frame.
+"""
 function inreferenceframe(p::Panel, x, y)
 	X, Y = rotate(x, y, -(π+p.θ))
 	return X + p.Xc, Y + p.Yc
 end
 
+"""
+    cropegde!(p::Panel, ϵ, isend)
+
+Shortens the panel by a length `ϵ` at its end if `isend == true`
+or at its start otherwise.
+"""
 function cropedge!(p::Panel, ϵ, isend)
 	p.b -= .5ϵ
 	if isend
@@ -110,6 +149,11 @@ function cropedge!(p::Panel, ϵ, isend)
 	p.Yc = .5(p.Y1+p.Y2)
 end
 
+"""
+    setangle!(p::Panel, α, pivotlocation)
+
+Rotate panel `p` by an angle `α` with rotation center located at `pivotlocation`.
+"""
 function setangle!(p::Panel, α, pivotlocation)
 	x1 = p.X1 - pivotlocation[1]
 	y1 = p.Y1 - pivotlocation[2]
@@ -122,6 +166,11 @@ function setangle!(p::Panel, α, pivotlocation)
 	p.θ = atan(p.Y2 - p.Y1, p.X1 - p.X2)
 end
 
+"""
+    translate!(p::Panel, Xt, Yt)
+
+Translate panel `p`.
+"""
 function translate!(p::Panel, Xt, Yt)
 	p.X1 += Xt
 	p.Y1 += Yt
@@ -132,6 +181,11 @@ function translate!(p::Panel, Xt, Yt)
 end
 
 
+"""
+    ConstantPanel
+
+Structure representing a vortex panel of uniform strength.
+"""
 mutable struct ConstantPanel <: Panel
 	X1::Float64
 	Y1::Float64
@@ -144,6 +198,11 @@ mutable struct ConstantPanel <: Panel
 	profID::String
 end
 
+"""
+    getparams(p::ConstantPanel, X, Y)
+
+Return the velocity induced by panel `p` if it had unit strength at location `X`, `Y`.
+"""
 function getparams(p::ConstantPanel, X, Y)
 	x, y = inpanelframe(p, X, Y)
 	u = (atan((x-p.b)/y) - atan((x+p.b)/y))pi2_inv
@@ -151,6 +210,11 @@ function getparams(p::ConstantPanel, X, Y)
 	return u, v
 end
 
+"""
+    LinearPanel
+
+Structure representing a vortex panel of linearily varying strength.
+"""
 mutable struct LinearPanel <: Panel
 	X1::Float64
 	Y1::Float64
@@ -168,9 +232,10 @@ function LinearPanel(X1, Y1, X2, Y2, Xc, Yc, b, θ, profID)
 end
 
 """
-function getparams(p::LinearPanel, X, Y)
-	Obtain the parameters to multiply with γL, γR in order to get the
-	velocity at point X, Y.
+    getparams(p::LinearPanel, X, Y)
+
+Obtain the parameters to multiply with γL, γR in order to get the
+velocity at point `X`, `Y` induced by linear vortex panel `p`.
 """
 function getparams(p::LinearPanel, X, Y)
 	(p.b == 0) && return [zeros(2), zeros(2)]
@@ -196,16 +261,17 @@ function getparams(p::LinearPanel, X, Y)
 end
 
 """
-function getmotionkelvin(p::LinearPanel, ω, Ut, Vt, X0, Y0)
-	Get the circulation induced by the panel motion.
+    getmotionkelvin(p::LinearPanel, ω, Ut, Vt, X0, Y0)
 
-	Input:
-		-p  : the linear panel to integrate on
-		-ω  : angular velocity in the z direction
-		-Ut : translational horizontal body velocity
-		-Vt : translational vertical body velocity
-		-X0 : position X of the center of rotation of the body
-		-Y0 : position Y of the center of rotation of the body
+Get the circulation induced by the motion of panel `p`.
+
+Input:
+    -`p`  : the linear panel to integrate on
+    -`ω`  : angular velocity in the z direction
+    -`Ut` : translational horizontal body velocity
+    -`Vt` : translational vertical body velocity
+    -`X0` : position X of the center of rotation of the body
+    -`Y0` : position Y of the center of rotation of the body
 """
 function getmotionkelvin(p::LinearPanel, ω, Ut, Vt, X0, Y0)
 	x0, y0 = inpanelframe(p, X0, Y0)
@@ -214,21 +280,22 @@ function getmotionkelvin(p::LinearPanel, ω, Ut, Vt, X0, Y0)
 end
 
 """
-function getmotionparams(p::LinearPanel, X, Y)
-	Get the velocity parameters at point X, Y due to the motion of the panel.
-	Integrals are performed in the panel frame of reference then re-cast
-	in the inertial frame through a rotation.
+    getmotionparams(p::LinearPanel, X, Y)
 
-	Input:
-		-p  : the linear panel to integrate on
-		-X  : position X where we want the velocity induced by the body motion
-		-Y  : position Y where we want the velocity induced by the body motion
-		-ω  : angular velocity in the z direction
-		-Ut : translational horizontal body velocity
-		-Vt : translational vertical body velocity
-		-X0 : position X of the center of rotation of the body
-		-Y0 : position Y of the center of rotation of the body
-		-vs : stretching velocity
+Get the velocity parameters at point `X`, `Y` due to the motion of panel `p`.
+Integrals are performed in the panel frame of reference then re-cast
+in the inertial frame through a rotation.
+
+Input:
+    -`p`  : the linear panel to integrate on
+    -`X`  : position X where we want the velocity induced by the body motion
+    -`Y`  : position Y where we want the velocity induced by the body motion
+    -`ω`  : angular velocity in the z direction
+    -`Ut` : translational horizontal body velocity
+    -`Vt` : translational vertical body velocity
+    -`X0` : position X of the center of rotation of the body
+    -`Y0` : position Y of the center of rotation of the body
+    -`vs` : stretching velocity
 """
 function getmotionparams(p::LinearPanel, X, Y, ω, Ut, Vt, X0, Y0, vs=0)
 	(p.b == 0) && return zeros(2)
@@ -246,15 +313,16 @@ function getmotionparams(p::LinearPanel, X, Y, ω, Ut, Vt, X0, Y0, vs=0)
 end
 
 """
-function getinducedvelocity(p::LinearPanel, XY, k, γL, γR, ω, Ut, Vt, Xp, Yp, vs)
-    Computes the velocity due to pane `p` at location `XY`
-    k specifies which integral is required:
-        0 full integral; vortex
-        1 full integral; source
-        2 half-left integral; vortex
-        3 half-left integral; source
-        4 half-right integral; vortex
-        5 half-right integral; source
+    getinducedvelocity(p::LinearPanel, XY, k, γL, γR, ω, Ut, Vt, Xp, Yp, vs)
+
+Computes the velocity due to panel `p` at location `XY`
+k specifies which integral is required:
+    0 full integral; vortex
+    1 full integral; source
+    2 half-left integral; vortex
+    3 half-left integral; source
+    4 half-right integral; vortex
+    5 half-right integral; source
 """
 function getinducedvelocity(p::LinearPanel, XY, k, γL, γR, ω, Ut, Vt, Xp, Yp, vs=0)
     @assert 0 ≤ k < 6
@@ -286,28 +354,29 @@ function getinducedvelocity(p::LinearPanel, XY, k, γL, γR, ω, Ut, Vt, Xp, Yp,
 end
 
 """
-function getimpulse(p::LinearPanel, γ1, γ2)
-	Compute the impulse by integrating X^γ and X^X^γ analytically on the linear panel.
-	You can specify if you need to add the integral of X^(n^Vb) where n
-	points towards the fluid.
-	The integral is performed in the panel frame and the result is then
-	rotated in the inertial frame of reference.
-	Inertial frame: X
-	Panel frame:   -x + x'
+    getimpulse(p::LinearPanel, γL, γR, ω, Ut, Vt, X0, Y0, Xp, Yp, nc, vs=0)
 
-	Input:
-		-p  : the linear panel to integrate on
-		-γL : vortex strength on the left side of the panel (in its frame)
-		-γR : vortex strength on the right side of the panel
-		-ω  : angular velocity in the z direction
-		-Ut : translational horizontal body velocity
-		-Vt : translational vertical body velocity
-		-X0 : position X of origin of the inertial frame
-		-Y0 : position Y of origin of the inertial frame
-		-Xp : position X of the center of rotation of the body
-		-Yp : position Y of the center of rotation of the body
-		-nc : need body velocity contribution?
-		-vs : stretching velocity
+Compute the impulse by integrating X^γ and X^X^γ analytically on the linear panel.
+You can specify if you need to add the integral of X^(n^Vb) where n
+points towards the fluid.
+The integral is performed in the panel frame and the result is then
+rotated in the inertial frame of reference.
+Inertial frame: `X`,
+Panel frame:   `-x + x'`
+
+Input:
+    -`p`  : the linear panel to integrate on
+    -`γL` : vortex strength on the left side of the panel (in its frame)
+    -`γR` : vortex strength on the right side of the panel
+    -`ω`  : angular velocity in the z direction
+    -`Ut` : translational horizontal body velocity
+    -`Vt` : translational vertical body velocity
+    -`X0` : position X of origin of the inertial frame
+    -`Y0` : position Y of origin of the inertial frame
+    -`Xp` : position X of the center of rotation of the body
+    -`Yp` : position Y of the center of rotation of the body
+    -`nc` : need body velocity contribution?
+    -`vs` : stretching velocity
 """
 function getimpulse(p::LinearPanel, γL, γR, ω, Ut, Vt, X0, Y0, Xp, Yp, nc, vs=0)
 	Θ = π+p.θ
@@ -331,17 +400,18 @@ function getimpulse(p::LinearPanel, γL, γR, ω, Ut, Vt, X0, Y0, Xp, Yp, nc, vs
 end
 
 """
-function getmonopolevortex()
-    Compute the monopole of vorticity of a linear panel and its location in the reference frame.
-    If vortex strength crosses the x axis, then the panel is split into to smaller
-    panels of positive and negative strengths.
-    In the case it is split, then the id is modified to be able to retrace it later.
+    getmonopolevortex(p::LinearPanel, id, γL, γR, ω, Ut, Vt, Xp, Yp, vs=0)
 
-    Input:
-		-p  : the linear panel to integrate on
-        -id : the id of the panel
-		-γL : vortex strength on the left side of the panel (in its frame)
-		-γR : vortex strength on the right side of the panel
+Compute the monopole of vorticity of a linear panel and its location in the reference frame.
+If vortex strength crosses the x axis, then the panel is split into to smaller
+panels of positive and negative strengths.
+In the case it is split, then the id is modified to be able to retrace it later.
+
+Input:
+    -`p`  : the linear panel to integrate on
+    -`id` : the id of the panel
+    -`γL` : vortex strength on the left side of the panel (in its frame)
+    -`γR` : vortex strength on the right side of the panel
 """
 function getmonopolevortex(p::LinearPanel, id, γL, γR, ω, Ut, Vt, Xp, Yp, vs=0)
 	Θ = π+p.θ
@@ -363,15 +433,16 @@ function getmonopolevortex(p::LinearPanel, id, γL, γR, ω, Ut, Vt, Xp, Yp, vs=
 end
 
 """
-function getmonopolesource()
-    Compute the monopole of source of a linear panel and its location in the reference frame.
-    If vortex strength crosses the x axis, then the panel is split into to smaller
-    panels of positive and negative strengths.
-    In the case it is split, then the id is modified to be able to retrace it later.
+    getmonopolesource(p::LinearPanel, id, ω, Ut, Vt, Xp, Yp)
 
-    Input:
-		-p  : the linear panel to integrate on
-        -id : the id of the panel
+Compute the monopole of source of a linear panel and its location in the reference frame.
+If vortex strength crosses the x axis, then the panel is split into to smaller
+panels of positive and negative strengths.
+In the case it is split, then the id is modified to be able to retrace it later.
+
+Input:
+    -`p`  : the linear panel to integrate on
+    -`id` : the id of the panel
 """
 function getmonopolesource(p::LinearPanel, id, ω, Ut, Vt, Xp, Yp)
     @assert id < 1e9
@@ -393,8 +464,9 @@ function getmonopolesource(p::LinearPanel, id, ω, Ut, Vt, Xp, Yp)
 end
 
 """
-function getcentroid(p::LinearPanel)
-	returns the absolute position of the vorticity centroid of the panel.
+    getcentroid(p::LinearPanel, γL, γR)
+
+Return the absolute position (in reference frame) of the vorticity centroid of panel `p`.
 """
 function getcentroid(p::LinearPanel, γL, γR)
 	xc = p.b*(γR - γL)/3(γR + γL)
@@ -402,7 +474,9 @@ function getcentroid(p::LinearPanel, γL, γR)
 end
 
 """
-function getpressureforce(p::LinearPanel)
+    getpressureforce(p::LinearPanel, p1, p2, Xp, Yp)
+
+Return the force on panel `p` due to pressure distribution.
 """
 function getpressureforce(p::LinearPanel, p1, p2, Xp, Yp)
 	x, _ = inpanelframe(p, Xp, Yp)
@@ -410,9 +484,10 @@ function getpressureforce(p::LinearPanel, p1, p2, Xp, Yp)
 end
 
 """
-function getpotential(p::LinearPanel, γL, γR, ω, Ut, Xp, Yp)
-	Compute the potential through the integral of tangent velocity
-	along the panel "p".
+    getpotential(p::LinearPanel, γL, γR, ω, Ut, Xp, Yp)
+
+Compute the potential through the integral of tangent velocity
+along the panel `p`.
 """
 function getpotential(p::LinearPanel, γL, γR, ω, Ut, Vt, Xp, Yp)
 	_, yp = inpanelframe(p, Xp, Yp)
@@ -422,6 +497,12 @@ function getpotential(p::LinearPanel, γL, γR, ω, Ut, Vt, Xp, Yp)
 	return p.b*((γL+γR) + 2vv)
 end
 
+"""
+    getenergyflux(p::LinearPanel, γL, γR, ω, Ut, Vt, X0, Y0, Xp, Yp, vs=0)
+
+Return the flux of energy at panel `p` to obtain the force/moment with a compact
+formulation depending on velocity and its derivatives.
+"""
 function getenergyflux(p::LinearPanel, γL, γR, ω, Ut, Vt, X0, Y0, Xp, Yp, vs=0)
 	xp, yp = inpanelframe(p, Xp, Yp)
 	x, y = inpanelframe(p, X0, Y0)
@@ -442,6 +523,14 @@ function getenergyflux(p::LinearPanel, γL, γR, ω, Ut, Vt, X0, Y0, Xp, Yp, vs=
 	return [rotate(I1, I2, -π-p.θ)..., I3]
 end
 
+"""
+    getangularimpulsecorrection(p::LinearPanel, ω, Up, Vp, Ut, Vt, X0, Y0, Xp, Yp)
+
+
+Return the angular impulse correction at panel `p` to obtain the moment with a compact
+formulation depending on velocity and its derivatives.
+This correction is necessary if integrals are computed in the body reference frame.
+"""
 function getangularimpulsecorrection(p::LinearPanel, ω, Up, Vp, Ut, Vt, X0, Y0, Xp, Yp)
 	xp, _ = inpanelframe(p, Xp, Yp)
 	x, y = inpanelframe(p, X0, Y0)
@@ -453,9 +542,10 @@ function getangularimpulsecorrection(p::LinearPanel, ω, Up, Vp, Ut, Vt, X0, Y0,
 end
 
 """
-function getbodymomentofinertia(p::LinearPanel, X0, Y0)
-	returns the contribution of panel "p" on the moment of inertia of
-	the body.
+    getbodymomentofinertia(p::LinearPanel, X0, Y0)
+
+Return the contribution of panel `p` on the moment of inertia of
+the body.
 """
 function getbodymomentofinertia(p::LinearPanel, X0, Y0)
 	x, y = inpanelframe(p, X0, Y0)
@@ -463,8 +553,9 @@ function getbodymomentofinertia(p::LinearPanel, X0, Y0)
 end
 
 """
-function getbodyvolume(p::LinearPanel, X0, Y0)
-	returns the contribution of panel "p" on the body volume.
+    getbodyvolume(p::LinearPanel, X0, Y0)
+
+Return the contribution of panel `p` on the body volume.
 """
 function getbodyvolume(p::LinearPanel, X0, Y0)
 	_, y = inpanelframe(p, X0, Y0)
@@ -472,16 +563,23 @@ function getbodyvolume(p::LinearPanel, X0, Y0)
 end
 
 """
-function getbodycentroid(p::LinearPanel, X0, Y0)
-	returns the contribution of panel "p" on the position of the
-	centroid of the body with respect to position "X0, Y0",
-	multiplied by the body volume.
+    getbodycentroid(p::LinearPanel, X0, Y0)
+
+Returns the contribution of panel `p` on the position of the
+centroid of the body with respect to position `X0`, `Y0`,
+multiplied by the body volume.
 """
 function getbodycentroid(p::LinearPanel, X0, Y0)
 	x, y = inpanelframe(p, X0, Y0)
 	return rotate(0, -p.b*((x^2 + y^2) + p.b^2/3), -π-p.θ)
 end
 
+"""
+    getlinearspeedcoeffs(p::LinearPanel, o::LinearPanel, vertical)
+
+Return the velocity parameters induced by linear panel `o` at center of panel `p`.
+If `vertical == true`, then only the normal components are returned.
+"""
 function getlinearspeedcoeffs(p::LinearPanel, o::LinearPanel, vertical)
 	u, v = getparams(o, p.Xc, p.Yc)
 	uv1 = rotate(u[1], v[1], p.θ - o.θ)
@@ -490,6 +588,12 @@ function getlinearspeedcoeffs(p::LinearPanel, o::LinearPanel, vertical)
 	return uv1[1], uv2[1]
 end
 
+"""
+    getconstantspeedcoeffs(p::LinearPanel, o::ConstantPanel, vertical)
+
+Return the velocity parameters induced by uniform panel `o` at center of panel `p`.
+If `vertical == true`, then only the normal components are returned.
+"""
 function getconstantspeedcoeffs(p::LinearPanel, o::ConstantPanel, vertical)
 	u, v = getparams(o, p.Xc, p.Yc)
 	uv = rotate(u, v, p.θ - o.θ)
@@ -498,14 +602,20 @@ function getconstantspeedcoeffs(p::LinearPanel, o::ConstantPanel, vertical)
 end
 
 """
-function getnormal(p::LinearPanel)
-	Get the normal of the panel in its frame of reference
-	(inside of the body)
+    getnormal(p::LinearPanel)
+
+Get the normal of the panel in its frame of reference (inside of the body).
 """
 function getnormal(p::LinearPanel)
 	return [-sin(p.θ), -cos(p.θ)]
 end
 
+"""
+    getγ(p::LinearPanel, γ1, γ2, X, Y)
+
+Return the vortex strength of panel `p` at point `X`, `Y`.
+This point must be part of the panel.
+"""
 function getγ(p::LinearPanel, γ1, γ2, X, Y)
 	x, y = inpanelframe(p, X, Y)
 	@assert	abs(y) < 1e-12
@@ -513,10 +623,11 @@ function getγ(p::LinearPanel, γ1, γ2, X, Y)
 end
 
 """
-function get∫fdV(pa::LinearPanel, XY, f)
-	Computes the integral of 'f' on the triangle created by the
-	panel and point XY using a Gauss-Legendre quadrature.
-	f can return a vector.
+    get∫fdV(pa::LinearPanel, XY, f)
+
+Computes the integral of `f` on the triangle created by the
+panel and point `XY` using a Gauss-Legendre quadrature.
+`f` can return a vector.
 """
 function get∫fdV(pa::LinearPanel, XY, f)
 	J =	(XY[1] - pa.X2)*(pa.Y1 - pa.Y2) - (pa.X1 - pa.X2)*(XY[2] - pa.Y2)
