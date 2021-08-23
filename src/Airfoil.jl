@@ -4,39 +4,70 @@
 # Date              : 18.03.2019
 # Last Modified Date: 03.03.2021
 
+"""
+    `gaw1(x)`
+
+Return the coordinates of a GAW1 airfoil.
+"""
 function gaw1(x)
 	ye = @. .278536sqrt(x) - .148567x + .006397x^2 - .220980x^3 + .081084x^4
 	yi = @. -.190361sqrt(x)  + .161628x - .341176x^2 + .897631x^3 - .531252x^4
 	return [ye, yi]
 end
 
-function naca00(x, Z)
-	ye = @. .05Z*(.2969sqrt(x) - .1260x - .3516x^2 + .2843x^3 - .1036x^4)
+"""
+    `naca00(x; kwargs...)`
+
+Return the coordinates of a NACA00ZZ airfoil.
+
+# Keyword arguments:
+    - `ZZ`: max thickness (in % of the chord) of the airfoil.
+"""
+function naca00(x; ZZ=12)
+	ye = @. .05ZZ*(.2969sqrt(x) - .1260x - .3516x^2 + .2843x^3 - .1036x^4)
 	yi = -ye
 	return [ye, yi]
 end
 
-function circle(x, R)
+"""
+    `circle(x; kwargs...)`
+
+Return the coordinates of a circle.
+
+# Keyword arguments:
+    - `R=.5`: radius of the circle.
+"""
+function circle(x; R=.5)
 	ye = @. sqrt(R^2 - (x-R)^2)
 	yi = -ye
 	return [ye, yi]
 end
 
-function ellipse(x, b)
+"""
+    `ellipse(x; kwargs...)`
+
+Return the coordinates of an ellipse.
+
+# Keyword arguments:
+    - `B=.5`: half height of the ellipse.
+"""
+function ellipse(x; B=.5)
 	ye = @. .5b*sqrt(1 - 4(x-.5)^2)
 	yi = -ye
 	return [ye, yi]
 end
 
-"""
-Constant values for the fish
-"""
+#Constant values for the fish
 const wh = .04
 const sb = .04
 const st = .95
 const wt = .01
 
-"""Smooth increase from 0 to 1 in half a period"""
+"""
+    `initiator(ξ, T)`
+
+Smooth increase from 0 to 1 in half a period `T` and its time derivative.
+"""
 function initiator(ξ, T)
 	#= ξ >= T/2 && return [1, 0] =#
 	#= return [.5 + .5sin(π*(2ξ/T - .5)), π/T*cos(π*(2ξ/T - .5))] =#
@@ -45,7 +76,10 @@ function initiator(ξ, T)
 end
 
 """
-function carlingfish(s, t)
+    `carlingfish(s, t, T)`
+
+Return the curvature of a curve of unit length associated with the motion of a
+carling fish of period `T`. Its time derivative is computed too.
 """
 function carlingfish(s, t, T)
 	@assert 0 ≤ s ≤ 1 "Wrong coordinate 's'"
@@ -70,7 +104,10 @@ function deadfish(s, t, T)
 end
 
 """
-function efficientfish(s, t)
+    `splinefish(s, t, T, X, K)`
+
+Return the curvature of a curve of unit length associated with the motion of a
+fish following a cubic spline.
 """
 function splinefish(s, t, T, X, K)
 	@assert 0 ≤ s ≤ 1 "Wrong coordinate 's'"
@@ -82,18 +119,13 @@ function splinefish(s, t, T, X, K)
 	i1, i2 = initiator(t, T)
 	return [κ1*i1; κ1*i2 + κ2*i1]
 end
-"""
-function efficientfish(s, t)
-"""
+
 function efficientfish(s, t, T)
 	X = [0, 1/3, 2/3, 1]
 	K = [3.34, 1.67, 2π, 2π]
 	return splinefish(s, t, T, X, K)
 end
 
-"""
-function fastfish(s, t)
-"""
 function fastfish(s, t, T)
 	X = [0, 1/3, 2/3, 1]
 	K = [1.51, .48, 5.74, 2.73]
@@ -101,8 +133,9 @@ function fastfish(s, t, T)
 end
 
 """
-function swimmerthickness(s)
-	Thickness of the fish
+    `swimmerthickness(s)`
+
+Return the thickness of the swimming body along its coordinate `s`.
 """
 function swimmerthickness(s)
 	s < sb && return [sqrt(s*(2wh - s)), -sqrt(s*(2wh - s))]
