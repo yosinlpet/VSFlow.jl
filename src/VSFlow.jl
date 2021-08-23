@@ -173,7 +173,9 @@ function copier!(p::Profile, p2::Profile)
 end
 
 """
-genprofile(profile, N, position, args...)
+    genprofile(profile, N, position, args...)
+
+Generate a profile with a wedged trailing edge.
 """
 function genprofile(profile::Function, N::Int64, profID, position::Array, args...)
 	θ = range(0, pi, length=N÷2 + 1)

@@ -11,4 +11,5 @@ Documentation for [VSFlow](https://github.com/yosinlpet/VSFlow.jl).
 
 ```@autodocs
 Modules = [VSFlow]
+Pages = ["Airfoil.jl", "Utils.jl", "VortexElement.jl"]
 ```
