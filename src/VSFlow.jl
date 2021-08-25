@@ -7,6 +7,8 @@ using Random
 using Plots
 
 include("VortexElement.jl")
+include("Airfoil.jl")
+include("Utils.jl")
 
 export heavepitch, circularmotion
 export naca00, gaw1, circle, ellipse

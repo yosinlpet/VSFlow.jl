@@ -41,6 +41,11 @@ VSFlow.splinefish
 VSFlow.efficientfish
 VSFlow.fastfish
 VSFlow.swimmerthickness
+VSFlow.getbodymass
+VSFlow.getinertia
+VSFlow.getcenterofmass
+VSFlow.getcenterofmassvelocity
+VSFlow.correctvelocity
 ```
 
 ## Maths
@@ -54,9 +59,4 @@ VSFlow.checkangle
 VSFlow.gausslegendretriangle
 VSFlow.get∫fdV
 VSFlow.cubicspline
-VSFlow.getbodymass
-VSFlow.getinertia
-VSFlow.getcenterofmass
-VSFlow.getcenterofmassvelocity
-VSFlow.correctvelocity
 ```
