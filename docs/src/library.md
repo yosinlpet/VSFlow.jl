@@ -21,8 +21,13 @@ setinitvelocity
 profilerun
 ```
 
-## Post Processing
+## Quantities of interest
 ```@docs
+getimpulse
+getboundpotential
+getcoeffimpulse!
+getcoeffpotential!
+getnoca!
 ```
 
 # Private API

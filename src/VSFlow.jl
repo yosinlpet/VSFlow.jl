@@ -74,23 +74,23 @@ end
 Constructs a `Profile` object.
 
 # Arguments
- -`id`: `String` used to identify the profile.
- -`profile`: `function` determining the profile shape.
- -`N`: number of panels on the surface of the profile.
- -`position`: position of the pivot point of the profile.
- -`dt`: timestep of the simulation.
- -`T`: horizon time.
- -`δ`: kernel cut-off width.
- -`ϵ`: percentage of the average panel length to chop the trailing edge.
- -`rng`: random number generator
- -`is_comb`: `Bool` indicating whether a random comb of dipoles hit the body.
- -`lump`: `Bool` indicating whether the lumging of vortices should occur.
+ - `id`: `String` used to identify the profile.
+ - `profile`: `function` determining the profile shape.
+ - `N`: number of panels on the surface of the profile.
+ - `position`: position of the pivot point of the profile.
+ - `dt`: timestep of the simulation.
+ - `T`: horizon time.
+ - `δ`: kernel cut-off width.
+ - `ϵ`: percentage of the average panel length to chop the trailing edge.
+ - `rng`: random number generator
+ - `is_comb`: `Bool` indicating whether a random comb of dipoles hit the body.
+ - `lump`: `Bool` indicating whether the lumging of vortices should occur.
 
 # Additional Arguments
- -`η`: maximum error due to lumping.
- -`Tmin`: minimum time between two successive active vortices.
- -`sheet_size`: minimum vortex sheet length in the wake.
- -`ZZ`: body maximum thickness (in % of the chord).
+ - `η`: maximum error due to lumping.
+ - `Tmin`: minimum time between two successive active vortices.
+ - `sheet_size`: minimum vortex sheet length in the wake.
+ - `ZZ`: body maximum thickness (in % of the chord).
 """
 function Profile(id, profile::Function, N, position,
 				 dt, T, δ, ϵ, rng, is_comb, lump, args...)
@@ -923,13 +923,13 @@ end
 Simulate the testcase.
 
 # Arguments
- -`p`:
- -`is_write`: `Bool` indicating if the results are saved into a file.
- -`is_lumped`: `Bool` indicating if vortices have to be lumped together.
- -`is4thorder`: `Bool` indicating if the time marching is RK4 or ForwardEuler.
- -`forcefun`: `function` giving the force applied on the pivot point of the body.
- -`motion_args`: array containing parameters to feed `forcefun` with.
- -`show`: `Bool` indicating whether an animation has to be generated.
+ - `p`: `Profile` simulation to run.
+ - `is_write`: `Bool` indicating if the results are saved into a file.
+ - `is_lumped`: `Bool` indicating if vortices have to be lumped together.
+ - `is4thorder`: `Bool` indicating if the time marching is RK4 or ForwardEuler.
+ - `forcefun`: `function` giving the force applied on the pivot point of the body.
+ - `motion_args`: array containing parameters to feed `forcefun` with.
+ - `show`: `Bool` indicating whether an animation has to be generated.
 """
 function profilerun(p::Profile, is_write, is_lumped, is4thorder, forcefun, motion_args, show=false)
 	run(`echo "==================================================================="`)
