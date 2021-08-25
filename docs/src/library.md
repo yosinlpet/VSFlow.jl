@@ -34,9 +34,9 @@ getnoca!
 
 ## Vortex Elements
 ```@docs
-VortexPoint
-ConstantPanel
-LinearPanel
+VSFlow.VortexPoint
+VSFlow.ConstantPanel
+VSFlow.LinearPanel
 ```
 
 ## Airfoil geometries

@@ -86,10 +86,12 @@ Constructs a `Profile` object.
  - `is_comb`: `Bool` indicating whether a random comb of dipoles hit the body.
  - `lump`: `Bool` indicating whether the lumging of vortices should occur.
 
-# Additional Arguments
+# Additional Arguments if `lump==true`
  - `η`: maximum error due to lumping.
  - `Tmin`: minimum time between two successive active vortices.
  - `sheet_size`: minimum vortex sheet length in the wake.
+
+# Additional Arguments for `profile`
  - `ZZ`: body maximum thickness (in % of the chord).
 """
 function Profile(id, profile::Function, N, position,
