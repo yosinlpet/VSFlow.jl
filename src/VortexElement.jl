@@ -15,7 +15,13 @@ const X23 = sqrt((15 - 2sqrt(30))/35)
 """
     VortexPoint
 
-Structure to represent a point vortex.
+Structure representing a point vortex.
+
+# Fields
+ - `X`: X-position of the point vortex in the inertial frame.
+ - `Y`: Y-position of the point vortex in the inertial frame.
+ - `Γ`: Circulation of the point vortex.
+ - `dv`: Velocity correction in case of lumping.
 """
 mutable struct VortexPoint
 	X::Float64
@@ -183,6 +189,17 @@ end
     ConstantPanel
 
 Structure representing a vortex panel of uniform strength.
+
+# Fields
+ - `X1`: X-position of the start of the panel in the inertial frame.
+ - `Y1`: Y-position of the start of the panel in the inertial frame.
+ - `X2`: X-position of the end of the panel in the inertial frame.
+ - `Y2`: Y-position of the end of the panel in the inertial frame.
+ - `Xc`: X-position of the center of the panel in the inertial frame.
+ - `Yc`: Y-position of the center of the panel in the inertial frame.
+ - `b`: half-length of the panel.
+ - `θ`: panel orientation with respect to the X axis of the inertial frame.
+ - `profID`: ID of the profile the panel belongs to.
 """
 mutable struct ConstantPanel <: Panel
 	X1::Float64
@@ -211,7 +228,18 @@ end
 """
     LinearPanel
 
-Structure representing a vortex panel of linearily varying strength.
+Structure representing a vortex panel of linearly varying strength.
+
+# Fields
+ - `X1`: X-position of the start of the panel in the inertial frame.
+ - `Y1`: Y-position of the start of the panel in the inertial frame.
+ - `X2`: X-position of the end of the panel in the inertial frame.
+ - `Y2`: Y-position of the end of the panel in the inertial frame.
+ - `Xc`: X-position of the center of the panel in the inertial frame.
+ - `Yc`: Y-position of the center of the panel in the inertial frame.
+ - `b`: half-length of the panel.
+ - `θ`: panel orientation with respect to the X axis of the inertial frame.
+ - `profID`: ID of the profile the panel belongs to.
 """
 mutable struct LinearPanel <: Panel
 	X1::Float64

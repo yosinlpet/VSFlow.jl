@@ -23,7 +23,7 @@ profilerun
 
 ## Quantities of interest
 ```@docs
-getimpulse
+getimpulse(p::Profile)
 getboundpotential
 getcoeffimpulse!
 getcoeffpotential!
@@ -34,6 +34,9 @@ getnoca!
 
 ## Vortex Elements
 ```@docs
+VortexPoint
+ConstantPanel
+LinearPanel
 ```
 
 ## Airfoil geometries

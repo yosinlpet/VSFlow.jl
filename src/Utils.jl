@@ -34,7 +34,6 @@ norm2(x...) = sum(x.^2)
 
 Integrate function `f` using Simpson's rule.
 """
-
 function simps(f, x)
 	N = length(x) - 1
 	N < 2 && return trapz(f, x)
