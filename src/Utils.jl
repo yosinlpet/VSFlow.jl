@@ -257,6 +257,11 @@ function getbodymass(XYm, XYt, XYb)
 	return (I12 + I22 + I32 + I42)
 end
 
+"""
+    getinertia(XYm, XYt, XYb)
+
+Return the moment of inertia of the body through 25-point Gauss quatradure on triangles.
+"""
 function getinertia(XYm, XYt, XYb)
 	I1 = sum(map((XY1, XY2, XY3)->get∫fdV(XY1, XY2, XY3, (x, y)->norm2(x, y)), XYm[1:end-1], XYm[2:end], XYt[2:end]))
 	I2 = sum(map((XY1, XY2, XY3)->get∫fdV(XY1, XY2, XY3, (x, y)->norm2(x, y)), XYm[1:end-1], XYm[2:end], XYb[2:end]))

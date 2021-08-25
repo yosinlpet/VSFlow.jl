@@ -35,11 +35,7 @@ profilerun
 ```@docs
 VSFlow.initiator
 VSFlow.carlingfish
-VSFlow.anticarlingfish
-VSFlow.deadfish
 VSFlow.splinefish
-VSFlow.efficientfish
-VSFlow.fastfish
 VSFlow.swimmerthickness
 VSFlow.getbodymass
 VSFlow.getinertia
