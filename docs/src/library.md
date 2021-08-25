@@ -7,11 +7,37 @@
 # Vortex Elements
 
 # Airfoil geometries
-```@autodocs
-Pages = ["Airfoil.jl"]
+```@docs
+gaw1
+naca00
+circle
+ellipse
+initiator
+carlingfish
+anticarlingfish
+deadfish
+splinefish
+efficientfish
+fastfish
+swimmerthickness
 ```
 
 # Maths
 ```@autodocs
-Pages = ["Utils.jl"]
+rotate
+simps
+trapz
+backwarddifference
+centereddifference
+checkangle
+heavepitch
+circularmotion
+gausslegendretriangle
+get
+cubicspline
+getbodymass
+getinertia
+getcenterofmass
+getcenterofmassvelocity
+correctvelocity
 ```

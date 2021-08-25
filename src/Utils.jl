@@ -322,4 +322,3 @@ function correctvelocity(xm, ym, xb, yb, xt, yt, ub, vb, ut, vt)
 	J = getinertia(XYm, XYt, XYb)
 	return I/J, J
 end
-
