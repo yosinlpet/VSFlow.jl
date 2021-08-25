@@ -1,3 +1,8 @@
+```@contents
+Pages = ["library.md"]
+Depth = 2
+```
+
 # Public API
 
 ## Airfoil geometries
