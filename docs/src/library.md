@@ -1,3 +1,17 @@
+# Building a testcase
+
+# Running a simulation
+
+# Post Processing
+
+# Vortex Elements
+
+# Airfoil geometries
 ```@autodocs
-Modules = [VSFlow]
+Pages = ["Airfoil.jl"]
+```
+
+# Maths
+```@autodocs
+Pages = ["Utils.jl"]
 ```
