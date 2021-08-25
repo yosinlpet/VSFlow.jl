@@ -8,6 +8,10 @@ using Plots
 
 include("VortexElement.jl")
 
+export heavepitch, circularmotion
+export naca00, gaw1, circle, ellipse
+export Profile, profilerun, setinitvelocity
+
 const EPS = eps()
 Base.show(io::IO, x::Union{Float64,Float32}) = Base.Grisu._show(io, x, Base.Grisu.SHORTEST, 0, true, false)
 """

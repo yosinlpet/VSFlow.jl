@@ -1,6 +1,24 @@
 # Public API
-## Running a testcase
+
+## Airfoil geometries
 ```@docs
+naca00
+gaw1
+circle
+ellipse
+```
+
+## Airfoil motion
+```@docs
+heavepitch
+circularmotion
+```
+
+## Running the simulation
+```@docs
+Profile
+setinitvelocity
+profilerun
 ```
 
 ## Post Processing
@@ -15,36 +33,30 @@
 
 ## Airfoil geometries
 ```@docs
-gaw1
-naca00
-circle
-ellipse
-initiator
-carlingfish
-anticarlingfish
-deadfish
-splinefish
-efficientfish
-fastfish
-swimmerthickness
+VSFlow.initiator
+VSFlow.carlingfish
+VSFlow.anticarlingfish
+VSFlow.deadfish
+VSFlow.splinefish
+VSFlow.efficientfish
+VSFlow.fastfish
+VSFlow.swimmerthickness
 ```
 
 ## Maths
 ```@autodocs
-rotate
-simps
-trapz
-backwarddifference
-centereddifference
-checkangle
-heavepitch
-circularmotion
-gausslegendretriangle
-get
-cubicspline
-getbodymass
-getinertia
-getcenterofmass
-getcenterofmassvelocity
-correctvelocity
+VSFlow.rotate
+VSFlow.simps
+VSFlow.trapz
+VSFlow.backwarddifference
+VSFlow.centereddifference
+VSFlow.checkangle
+VSFlow.gausslegendretriangle
+VSFlow.get∫fdV
+VSFlow.cubicspline
+VSFlow.getbodymass
+VSFlow.getinertia
+VSFlow.getcenterofmass
+VSFlow.getcenterofmassvelocity
+VSFlow.correctvelocity
 ```
