@@ -21,7 +21,7 @@ end
 Return the coordinates of a NACA00ZZ airfoil.
 
 # Keyword arguments:
- - `ZZ`: max thickness (in % of the chord) of the airfoil.
+ - `ZZ = 12`: max thickness (in % of the chord) of the airfoil.
 """
 function naca00(x; ZZ=12)
 	ye = @. .05ZZ*(.2969sqrt(x) - .1260x - .3516x^2 + .2843x^3 - .1036x^4)
@@ -35,7 +35,7 @@ end
 Return the coordinates of a circle.
 
 # Keyword arguments:
- - `R=.5`: radius of the circle.
+ - `R = .5`: radius of the circle.
 """
 function circle(x; R=.5)
 	ye = @. sqrt(R^2 - (x-R)^2)
@@ -49,7 +49,7 @@ end
 Return the coordinates of an ellipse.
 
 # Keyword arguments:
- - `B=.5`: half height of the ellipse.
+ - `B = .5`: half height of the ellipse.
 """
 function ellipse(x; B=.5)
 	ye = @. .5b*sqrt(1 - 4(x-.5)^2)

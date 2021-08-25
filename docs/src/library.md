@@ -16,7 +16,7 @@ circularmotion
 
 ## Running the simulation
 ```@docs
-Profile
+Profile(id, profile::Function, N, position, dt, T, δ, ϵ, rng, is_comb, lump, args...)
 setinitvelocity
 profilerun
 ```
@@ -45,7 +45,7 @@ VSFlow.correctvelocity
 ```
 
 ## Maths
-```@autodocs
+```@docs
 VSFlow.rotate
 VSFlow.simps
 VSFlow.trapz

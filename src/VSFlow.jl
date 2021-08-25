@@ -8,11 +8,11 @@ using Plots
 
 include("VortexElement.jl")
 include("Airfoil.jl")
-include("Utils.jl")
 
 export heavepitch, circularmotion
 export naca00, gaw1, circle, ellipse
 export Profile, profilerun, setinitvelocity
+export getimpulse, getboundpotential, getnoca!, getcoeffimpulse!, getcoeffpotential!
 
 const EPS = eps()
 Base.show(io::IO, x::Union{Float64,Float32}) = Base.Grisu._show(io, x, Base.Grisu.SHORTEST, 0, true, false)
@@ -69,8 +69,28 @@ mutable struct Profile
 end
 
 """
-Constructor
-Profile(profile, N, position, args...)
+    Profile(id, profile::Function, N, position, dt, T, δ, ϵ, rng, is_comb, lump, args...)
+
+Constructs a `Profile` object.
+
+# Arguments
+ -`id`: `String` used to identify the profile.
+ -`profile`: `function` determining the profile shape.
+ -`N`: number of panels on the surface of the profile.
+ -`position`: position of the pivot point of the profile.
+ -`dt`: timestep of the simulation.
+ -`T`: horizon time.
+ -`δ`: kernel cut-off width.
+ -`ϵ`: percentage of the average panel length to chop the trailing edge.
+ -`rng`: random number generator
+ -`is_comb`: `Bool` indicating whether a random comb of dipoles hit the body.
+ -`lump`: `Bool` indicating whether the lumging of vortices should occur.
+
+# Additional Arguments
+ -`η`: maximum error due to lumping.
+ -`Tmin`: minimum time between two successive active vortices.
+ -`sheet_size`: minimum vortex sheet length in the wake.
+ -`ZZ`: body maximum thickness (in % of the chord).
 """
 function Profile(id, profile::Function, N, position,
 				 dt, T, δ, ϵ, rng, is_comb, lump, args...)
@@ -206,7 +226,9 @@ function genprofile(profile::Function, N::Int64, profID, position::Array, args..
 end
 
 """
-getprofilelengths(p::Profile)
+    getprofilelengths(p::Profile)
+
+Return an array containing lengths of all panels.
 """
 function getprofilelengths(p::Profile)
 	λ = 2map(pr->pr.b, p.panels)
@@ -216,7 +238,9 @@ end
 
 
 """
-inbodyframe(p::Profile, X, Y)
+    inbodyframe(p::Profile, X, Y)
+
+Return the vector `[X, Y]` in a frame attached to the pivot point of the body.
 """
 function inbodyframe(p::Profile, X, Y)
 	X0, Y0 = p.pivot_location
@@ -225,7 +249,9 @@ function inbodyframe(p::Profile, X, Y)
 end
 
 """
-getparamsinrefframe(panel, X, Y)
+    getparamsinrefframe(panel, X, Y)
+
+Return the velocity parameters from `panel` at point `X`, `Y` in the inertial frame.
 """
 function getparamsinrefframe(panel::LinearPanel, X, Y)
 	u, v = getparams(panel, X, Y)
@@ -237,7 +263,9 @@ function getparamsinrefframe(panel::LinearPanel, X, Y)
 end
 
 """
-getparamsinrefframe(panel, X, Y)
+    getparamsinrefframe(panel, X, Y)
+
+Return the velocity parameters from `panel` at point `X`, `Y` in the inertial frame.
 """
 function getparamsinrefframe(panel::ConstantPanel, X, Y)
 	u, v = getparams(panel, X, Y)
@@ -245,7 +273,9 @@ function getparamsinrefframe(panel::ConstantPanel, X, Y)
 end
 
 """
-getboundpanelsinducedvel(profile, X, Y)
+    getboundpanelsinducedvel(profile, X, Y)
+
+Return the velocity at point `X`, `Y` due to the body panels.
 """
 function getboundpanelsinducedvel(p::Profile, X, Y)
 	X0, Y0 = p.pivot_location
@@ -261,7 +291,9 @@ function getboundpanelsinducedvel(p::Profile, X, Y)
 end
 
 """
-motionupdate!(p::Profile, X, Ẋ, t)
+    motionupdate!(p::Profile, X, Ẋ, t)
+
+Update the position, AoA and velocities of the body.
 """
 function motionupdate!(p::Profile, X, Ẋ, t)
 	X0, Y0 = p.pivot_location
@@ -322,7 +354,12 @@ function dipolecombgenerator(rng::MersenneTwister, T, δ, is_comb, threshold=5e-
 end
 
 """
-globalvelocity(p::Profile, XY)
+    globalvelocity(p::Profile, XY)
+
+Return the velocity at point `XY`.
+
+# Keyword Arguments
+ - `incloud = false`: flag indicating whether `XY` is part of the cloud of point vortices.
 """
 function globalvelocity(p::Profile, XY, incloud=false)
 	UV = getboundpanelsinducedvel(p, XY[1], XY[2])
@@ -332,7 +369,9 @@ function globalvelocity(p::Profile, XY, incloud=false)
 end
 
 """
-setforcecontrol!(p::Profile, fx, fy, mz)
+    setforcecontrol!(p::Profile, fx, fy, mz)
+
+Update forces acting on the body pivot point.
 """
 function setforcecontrol!(p::Profile, fx, fy, mz)
 	p.force_control = [fx, fy, -mz]
@@ -340,7 +379,11 @@ function setforcecontrol!(p::Profile, fx, fy, mz)
 end
 
 """
-setinitvelocity(p::Profile, u, v, α̇)
+    setinitvelocity(p::Profile, u, v, α̇)
+
+Set the initial velocities of the body.
+Note: `α̇` represents the rate of change in AoA and is thus opposite to
+the angular velocity.
 """
 function setinitvelocity(p::Profile, u, v, α̇)
 	p.Ut = u
@@ -350,7 +393,9 @@ function setinitvelocity(p::Profile, u, v, α̇)
 end
 
 """
-gettrailingedgevel!(p::Profile)
+    gettrailingedgevel!(p::Profile)
+
+Return the fluid velocity at the trailing edge expressed in the inertial frame.
 """
 function gettrailingedgevel!(p::Profile)
 	v1 = p.γs[1]
@@ -366,7 +411,9 @@ function gettrailingedgevel!(p::Profile)
 end
 
 """
-placeconstantpanel!(p::Profile, X2, Y2)
+    placeconstantpanel!(p::Profile, X2, Y2)
+
+Place the uniform panel at location `X2`, `Y2`.
 """
 function placeconstantpanel!(p::Profile, X2, Y2)
 	X1 = p.trailing[1] + p.ϵ*p.average_length*cos(p.θg)
@@ -376,7 +423,14 @@ function placeconstantpanel!(p::Profile, X2, Y2)
 end
 
 """
-step!(p::Profile)
+    step!(p::Profile)
+
+Update the simulation in time.
+
+#Keyword Arguments
+ - `is4thorder = true`: indicates if a RK4 or a ForwardEuler scheme is used.
+ - `need_reset = true`: indicates whether the uniform panel needs to be turned
+    into a point vortex.
 """
 function step!(p::Profile, is4thorder=true, need_reset=true)
 	X0, Y0 = p.pivot_location
@@ -451,9 +505,10 @@ function step!(p::Profile, is4thorder=true, need_reset=true)
 end
 
 """
-function resetconstantpanel!(p)
-	Transform the constant panel into a point vortex.
-	Then recompute the vortex strength distribution on the body.
+    function resetconstantpanel!(p)
+
+Transform the constant panel into a point vortex.
+Then recompute the vortex strength distribution on the body.
 """
 function resetconstantpanel!(p)
 	getnoca!(p, true)
@@ -478,7 +533,10 @@ function resetconstantpanel!(p)
 end
 
 """
-lumpvortices!(p::Profile)
+    lumpvortices!(p::Profile)
+
+Lump the last shed point vortex into the active vortex if lumping criteria are met.
+Used instead of `step!` if lumping is desired.
 """
 function lumpvortices!(p::Profile)
 	if p.last_vp_ind > length(p.vortex_points) - p.sheet_size + 1
@@ -521,7 +579,9 @@ function lumpvortices!(p::Profile)
 end
 
 """
-getforceerror!(p::Profile, s_index, t_index)
+    getforceerror!(p::Profile, s_index, t_index)
+
+Return the error in impulse due to the lumping of vortex with index `s_index`.
 """
 function getforceerror!(p::Profile, s_index, t_index)
 	no_transfer_p = deepcopy(p)
@@ -546,7 +606,9 @@ function getforceerror!(p::Profile, s_index, t_index)
 end
 
 """
-getvorteximpulse(p, vp)
+    getvorteximpulse(p, vp)
+
+Return the impulse linked with vortex `vp` and its image on the body.
 """
 function getvorteximpulse(p::Profile, vp)
 	b = zeros(p.N + 1)
@@ -565,7 +627,9 @@ function getvorteximpulse(p::Profile, vp)
 end
 
 """
-transfer!(p, s_index, t_index)
+    transfer!(p, s_index, t_index)
+
+Lump vortex of index `s_index` into active vortex of index `t_index`.
 """
 function transfer!(p::Profile, s_index, t_index)
 	p.vortex_points[t_index].Γ += p.vortex_points[s_index].Γ
@@ -576,7 +640,9 @@ end
 
 
 """
-setγs!(p::Profile)
+    setγs!(p::Profile)
+
+Compute the vortex strength distribution around the profile.
 """
 function setγs!(p::Profile)
 	X0, Y0 = p.pivot_location
@@ -647,7 +713,9 @@ function setγs!(p::Profile)
 end
 
 """
-getimpulse(p::Profile)
+    getimpulse(p::Profile)
+
+Return the linear/angular impulse exerted by the fluid on the body.
 """
 function getimpulse(p::Profile)
 	X0, Y0 = p.trajectoryx[1], p.trajectoryy[1]
@@ -664,7 +732,13 @@ end
 
 
 """
-getcoeffimpulse!()
+    getcoeffimpulse!()
+
+Return aerodynamic coefficients computed with impulse conservation in the flow.
+
+# Keyword Arguments
+ - `update = true`: indicates whether the impulse history has to be updated.
+ - `β = 1.0`: portion of a timestep.
 """
 function getcoeffimpulse!(p::Profile, update=true, β=1.)
 	X0, Y0 = p.trajectoryx[1], p.trajectoryy[1]
@@ -684,6 +758,12 @@ function getcoeffimpulse!(p::Profile, update=true, β=1.)
 end
 
 """
+    getnoca!(p::Profile, update=true)
+
+Return aerodynamic coefficients computed with a control volume approach.
+
+# Keyword Arguments
+ - `update = true`: indicates whether the impulse history has to be updated.
 """
 function getnoca!(p::Profile, update=true)
 	X0, Y0 = p.trajectoryx[1], p.trajectoryy[1]
@@ -710,13 +790,11 @@ function getnoca!(p::Profile, update=true)
 end
 
 """
-getboundpotential(p::Profile, nn=20)
-	Integrates the velocity on the profile to obtain the potential.
-	Integrating on a path from upstream is required to get the exact
-	pressure. If the goal is to get the loads, then the upstream
-	integration is unnecessary.
+    getboundpotential(p::Profile)
+
+Integrates the velocity on the profile to obtain the velocity potential `ϕ`.
 """
-function getboundpotential(p::Profile, nn=20)
+function getboundpotential(p::Profile)
 	X0, Y0 = p.pivot_location
 	ϕs = zeros(p.N+1)
 	tmp = 0
@@ -728,7 +806,13 @@ function getboundpotential(p::Profile, nn=20)
 end
 
 """
-setcps
+    setcps!(p::Profile, update=true, β=1.)
+
+Update the pressure coefficient along the body.
+
+# Keyword Arguments
+ - `update = true`: indicates whether the impulse history has to be updated.
+ - `β = 1.0`: portion of a timestep.
 """
 function setcps!(p::Profile, update=true, β=1.)
 	ϕs = getboundpotential(p)
@@ -749,7 +833,9 @@ function setcps!(p::Profile, update=true, β=1.)
 end
 
 """
-getcoeffpotential!
+    getcoeffpotential!(p::Profile)
+
+Return the aerodynamic coefficients through pressure integration on the body.
 """
 function getcoeffpotential!(p::Profile)
 	setcps!(p)
@@ -758,8 +844,9 @@ function getcoeffpotential!(p::Profile)
 end
 
 """
-getstate(p, n)
-	Used for the gym model
+    getstate(p, n)
+
+Used for the gym model
 """
 function getstate(p, n)
 	skip = div(p.N, n)
@@ -778,8 +865,9 @@ end
 getaoa(p) = rad2deg(atan(-p.Vt, -p.Ut) + p.old_α)
 
 """
-logresults2(p, is_init, t, mem)
-	Results for the RL controller
+    logresults2(p, is_init, t, mem)
+
+Results for the RL controller
 """
 function logresults2(p::Profile, is_init, t=0., mem=0)
 	if is_init
@@ -803,7 +891,9 @@ function logresults2(p::Profile, is_init, t=0., mem=0)
 end
 
 """
-logresults(p, is_init, t, mem)
+    logresults(p, is_init, t, mem)
+
+Write results to a file.
 """
 function logresults(p::Profile, is_init, t=0., mem=0, η=0.)
 	if is_init
@@ -828,6 +918,18 @@ function logresults(p::Profile, is_init, t=0., mem=0, η=0.)
 end
 
 """
+    profilerun(p::Profile, is_write, is_lumped, is4thorder, forcefun, motion_args, show=false)
+
+Simulate the testcase.
+
+# Arguments
+ -`p`:
+ -`is_write`: `Bool` indicating if the results are saved into a file.
+ -`is_lumped`: `Bool` indicating if vortices have to be lumped together.
+ -`is4thorder`: `Bool` indicating if the time marching is RK4 or ForwardEuler.
+ -`forcefun`: `function` giving the force applied on the pivot point of the body.
+ -`motion_args`: array containing parameters to feed `forcefun` with.
+ -`show`: `Bool` indicating whether an animation has to be generated.
 """
 function profilerun(p::Profile, is_write, is_lumped, is4thorder, forcefun, motion_args, show=false)
 	run(`echo "==================================================================="`)
