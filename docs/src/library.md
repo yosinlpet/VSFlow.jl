@@ -1,12 +1,19 @@
-# Building a testcase
+# Public API
+## Running a testcase
+```@docs
+```
 
-# Running a simulation
+## Post Processing
+```@docs
+```
 
-# Post Processing
+# Private API
 
-# Vortex Elements
+## Vortex Elements
+```@docs
+```
 
-# Airfoil geometries
+## Airfoil geometries
 ```@docs
 gaw1
 naca00
@@ -22,7 +29,7 @@ fastfish
 swimmerthickness
 ```
 
-# Maths
+## Maths
 ```@autodocs
 rotate
 simps
