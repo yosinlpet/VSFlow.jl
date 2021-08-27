@@ -666,7 +666,7 @@ end
 
 
 """
-    getcoeffimpulse!()
+    getcoeffimpulse!(p::Profile, update=true, β=1.)
 
 Return aerodynamic coefficients computed with impulse conservation in the flow.
 
