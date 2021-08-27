@@ -20,6 +20,7 @@ The plots in this documentation are generated using [Plots.jl](http://docs.julia
 Let's simulate an impulsively started NACA0012 with a 10º pitch angle.
 
 ```@example startingnaca0012
+import Pkg; Pkg.add("Plots")
 using Plots
 using VSFlow
 
@@ -46,25 +47,14 @@ airfoil = Profile(id = airfoil_ID,
                     T = T)
 
 profilerun(airfoil, motion, animate)
-```
-![Impulsively started NACA0012](assets/My-naca0012_np100_dt005_T5_dv001_eps001.gif)
 
-# Post Processing Results
+# Plotting lift coefficient
+plot(airfoil.history.t, airfoil.history.acn[:, 2])
+```
 
 A history of most useful data in the flow is saved at each time step in a data
 structure called `history`.
 
-For instance, we can access aerodynamic coefficients with:
-
-```@example plotting
-# Plotting the drag coefficient
-plot(airfoil.history.t, airfoil.history.acn[:, 1])
-
-# Plotting the lift coefficient
-plot(airfoil.history.t, airfoil.history.acn[:, 2])
-
-# Plotting the moment coefficient
-plot(airfoil.history.t, airfoil.history.acn[:, 3])
-```
+![Impulsively started NACA0012](assets/My-naca0012_np100_dt005_T5_dv001_eps001.gif)
 
 Documentation for [VSFlow](https://github.com/yosinlpet/VSFlow.jl).
