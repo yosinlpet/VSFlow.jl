@@ -34,7 +34,7 @@ airfoil_ID = "My-naca0012"
 shape = naca00(12.)
 motion = uniform(1., 0.)
 initial_position = [0., 0., deg2rad(10.)]
-initial_velocity = motion(0.)
+initial_velocity = motion(0.)[2]
 
 # Building the `Profile` object
 airfoil = Profile(id = airfoil_ID,

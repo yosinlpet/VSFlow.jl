@@ -23,7 +23,6 @@ circularmotion
 ## Running the simulation
 ```@docs
 Profile(;id, profile::Function, N, position, dt, T, δ, ϵ, lumpargs)
-setinitvelocity
 profilerun
 ```
 
