@@ -70,9 +70,10 @@ mutable struct Profile
 end
 
 """
-    Profile(; id, profileshape::Function, N, position, dt, T, δ, ϵ, (η, Tmin, Smin) = zeros(3))
+    Profile(; id, profileshape::Function, N, position, dt, T, δ = 1e-2, ϵ = 1e-2, (η, Tmin, Smin) = zeros(3))
 
 Constructs a `Profile` object.
+If `eta`, `Tmin`, `Smin` are all `0`, then no lumping operation occurs.
 
 # Keyword Arguments
  - `id`: `String` used to identify the profile.
@@ -87,8 +88,6 @@ Constructs a `Profile` object.
  - `Tmin = 0`: minimum time between two successive active vortices.
  - `Smin = 0`: minimum vortex sheet length in the wake.
 
-!!! Note
-If `eta`, `Tmin`, `Smin` are all `0`, then no lumping operation occurs.
 """
 function Profile(; id, profileshape::Function, N, position, dt, T,
                     δ = 1e-2,

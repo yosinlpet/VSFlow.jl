@@ -24,7 +24,6 @@ using VSFlow
 
 # Simulation parameters
 N = 100          # number of vortex panels on the body surface
-δ = 1e-2         # blob kernel cut-off width
 T = 5            # horizon time
 dt = 5e-2        # time step
 animate = true   # generate animation
@@ -38,7 +37,14 @@ airfoil_ID = 01
 # Body motion
 motion = uniform(1, 0)
 
-airfoil = Profile(id = airfoil_ID, profileshape = shape, N = N, position = initial_position, dt = dt, T = T, δ = δ, ϵ = ϵ)
+# Building the `Profile` object
+airfoil = Profile(id = airfoil_ID,
+                    profileshape = shape,
+                    N = N,
+                    position = initial_position,
+                    dt = dt,
+                    T = T)
+
 setinitvelocity(airfoil, motion(-.5dt)[2]...)
 @time profilerun(airfoil, motion, filewrite, animate)
 ```
