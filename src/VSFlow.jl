@@ -12,7 +12,7 @@ include("History.jl")
 export uniform, heavepitch, circularmotion
 export naca00, gaw1, circle, ellipse
 export Profile, profilerun
-export History, getimpulse, getboundpotential, getnoca!, getcoeffimpulse!, getcoeffpotential!
+export History, getimpulse, getboundpotential, getnoca!, getcoeffimpulse, getcoeffpotential!
 
 const EPS = eps()
 
@@ -49,13 +49,10 @@ mutable struct Profile
 	Ut::Float64
 	Vt::Float64
 	force_control::Array{Float64, 1}
-	trajectoryx::Array{Float64, 1}
-	trajectoryy::Array{Float64, 1}
 	trailing::Array{Float64, 1}
 	fname::String
 	Ainv::Array{Float64, 2}
 	cps::Array{Float64, 1}
-	pcps::Array{Float64, 1}
 	Bs::Vector{Float64}
 
 	#Lumping
@@ -105,8 +102,6 @@ function Profile(; id, profileshape::Function, x0, ẋ0, N, dt, T,
 	average_length = sum(2 .* map(p->p.b, panels))/N
 
     vortex_points = []
-	trajectoryx = [x0[1] + .25]
-	trajectoryy = [x0[2]]
 	fname = id*"_np"*string(N)*"_dt"*string(dt)*"_T"*string(T)*"_dv"*string(δ)*"_eps"*string(ϵ)
 	islumped && (fname = fname*"_lump_errMax"*string(η)*"_Tmin"*string(Tmin)*"_ss"*string(sheet_size))
 	fname = replace(fname, "."=>"")
@@ -143,8 +138,8 @@ function Profile(; id, profileshape::Function, x0, ẋ0, N, dt, T,
 	return Profile(profileshape, N, panels, V, vortex_points, constant_panel, x0[end],
 				   -α̇0, γs, 0, average_length, dt, T, δ, ϵ, 0,
 				   true, θg, θ0, θ1, θ2, p0, n0, ϕs0, constant_panel, pivot_location, U0, V0,
-				   zeros(3), trajectoryx, trajectoryy, trailing, fname, zeros(N+2, N+2),
-				   zeros(N+1), zeros(N), zeros(N), η, 0, Tmin, zeros(2), sheet_size, 1, islumped, id, h)
+				   zeros(3), trailing, fname, zeros(N+2, N+2),
+				   zeros(N+1), zeros(N), η, 0, Tmin, zeros(2), sheet_size, 1, islumped, id, h)
 end
 
 function copier!(p::Profile, p2::Profile)
@@ -177,13 +172,10 @@ function copier!(p::Profile, p2::Profile)
 	p.Ut = p2.Ut
 	p.Vt = p2.Vt
 	p.force_control = p2.force_control
-	p.trajectoryx = p2.trajectoryx
-	p.trajectoryy = p2.trajectoryy
 	p.trailing = p2.trailing
 	p.fname = p2.fname
 	p.Ainv = p2.Ainv
 	p.cps = p2.cps
-	p.pcps = p2.pcps
 	p.η = p2.η
 	p.τ = p2.τ
 	p.Tmin = p2.Tmin
@@ -432,9 +424,6 @@ function step!(p::Profile, is4thorder=true, need_reset=true)
 	setγs!(p)
 	gettrailingedgevel!(p)
 
-	push!(p.trajectoryx, X0)
-	push!(p.trajectoryy, Y0)
-
 	need_reset && resetconstantpanel!(p)
 
 	p.timelapse += p.dt
@@ -558,7 +547,7 @@ function getvorteximpulse(p::Profile, vp)
 	b[end] = -vp.Γ
 	γs = p.Ainv * b
 
-	X0, Y0 = p.trajectoryx[1], p.trajectoryy[1]
+	X0, Y0 = p.hisory.X[1], p.hisory.X[2]
 	Xp, Yp = p.pivot_location
 	panels_impulse = sum(map((pa, γL, γR)->getimpulse(pa, γL, γR, p.ω, p.Ut, p.Vt, X0, Y0, Xp, Yp, false)[1:2], p.panels, γs[1:end-1], γs[2:end]))
 	return [vp.Y-Y0, X0-vp.X] + panels_impulse/vp.Γ
@@ -656,7 +645,7 @@ end
 Return the linear/angular impulse exerted by the fluid on the body.
 """
 function getimpulse(p::Profile)
-	X0, Y0 = p.trajectoryx[1], p.trajectoryy[1]
+	X0, Y0 = p.history.X[1, 1], p.history.X[1, 2]
 	Xp, Yp = p.pivot_location
 	panels_impulse = sum(map((pa, γL, γR)->getimpulse(pa, γL, γR, p.ω, p.Ut, p.Vt, X0, Y0, Xp, Yp, true), p.panels, p.γs[1:end-1], p.γs[2:end]))
 
@@ -670,25 +659,16 @@ end
 
 
 """
-    getcoeffimpulse!(p::Profile, update=true, β=1.)
+    getcoeffimpulse(p::Profile, idx)
 
 Return aerodynamic coefficients computed with impulse conservation in the flow.
-
-# Keyword Arguments
- - `update = true`: indicates whether the impulse history has to be updated.
- - `β = 1.0`: portion of a timestep.
 """
-function getcoeffimpulse!(p::Profile, update=true, β=1.)
-	X0, Y0 = p.trajectoryx[1], p.trajectoryy[1]
+function getcoeffimpulse(p::Profile, idx)
+	X0, Y0 = p.history.X[1, 1], p.history.X[1, 2]
 	xyz_imp = getimpulse(p::Profile)
-
-	dt = β*p.dt
-	f = -backwarddifference(xyz_imp, p.old_impulse, dt)
-
-	if update
-		pop!(p.old_impulse)
-		pushfirst!(p.old_impulse, xyz_imp)
-	end
+    oldimpulse = getlastvalues(p.history, :P, idx, 4)[end:-1:1]
+    println(oldimpulse)
+    f = -backwarddifference(xyz_imp, oldimpulse, p.dt)
 
 	cd, cl, cm = 2f
 	cm -= dot(p.pivot_location - [X0, Y0], [cl, -cd])
@@ -704,7 +684,7 @@ Return aerodynamic coefficients computed with a control volume approach.
  - `update = true`: indicates whether the impulse history has to be updated.
 """
 function getnoca!(p::Profile, update=true)
-	X0, Y0 = p.trajectoryx[1], p.trajectoryy[1]
+	X0, Y0 = p.history.X[1, 1], p.history.X[1, 2]
 	Xp, Yp = p.pivot_location
 
 	u = 2p.constant_panel.b/p.dt
@@ -830,12 +810,12 @@ function profilerun(p::Profile, accfunc, isshow=false; is4thorder=true)
 		count += 1
 
 		cd_p, cl_p, cm_p = getcoeffpotential!(p)
-		cd_i, cl_i, cm_i = getcoeffimpulse!(p)
+        cd_i, cl_i, cm_i = getcoeffimpulse(p, Int(count-1))
 		Γb = 2p.γg*p.constant_panel.b + sum(map(vp->vp.Γ, p.vortex_points))
         θ = p.Bs[5]/p.θ0
         updatehistory!(p.history, count, p.timelapse, [p.pivot_location[1], p.pivot_location[2], p.old_α],
                        [p.Ut, p.Vt, p.ω], [cd_p, cl_p, cm_p], [p.Bs[2], p.Bs[3], p.Bs[4]],
-                       [cd_i, cl_i, cm_i], getboundpotential(p), p.cps, Γb, θ)
+                       [cd_i, cl_i, cm_i], getboundpotential(p), p.cps, getimpulse(p), Γb, θ)
 
 		skip=1
 		##Animation
@@ -843,7 +823,7 @@ function profilerun(p::Profile, accfunc, isshow=false; is4thorder=true)
 			x = map(vp->vp.X, p.vortex_points)
 			y = map(vp->vp.Y, p.vortex_points)
 			Γ = map(vp->vp.Γ, p.vortex_points)
-			traj = plot(p.trajectoryx, p.trajectoryy, line=(1, :lightgray), aspect_ratio=1, xlim=(-.5-p.T, 1.2), ylim=(-3, 3), framestyle=:none, grid=false, ticks=false, colorbar=false, dpi=400)
+            traj = plot(p.history.X[:, 1], p.history.X[:, 2], line=(1, :lightgray), aspect_ratio=1, xlim=(-.5-p.T, 1.2), ylim=(-3, 3), framestyle=:none, grid=false, ticks=false, colorbar=false, dpi=400)
 			pp = scatter!(x, y, zcolor=Γ, markercolor=:coolwarm, markersize=3, markerstrokewidth=0, clims=(-.2,.2))
 			xp = map(panel->panel.X1, p.panels)
 			yp = map(panel->panel.Y1, p.panels)
