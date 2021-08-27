@@ -20,6 +20,7 @@ The plots in this documentation are generated using [Plots.jl](http://docs.julia
 Let's simulate an impulsively started NACA0012 with a 10º pitch angle.
 
 ```@example startingnaca0012
+using Plots
 using VSFlow
 
 # Simulation parameters
@@ -27,7 +28,6 @@ N = 100          # number of vortex panels on the body surface
 T = 5            # horizon time
 dt = 5e-2        # time step
 animate = true   # generate animation
-filewrite = true # save results to file
 
 # Body geometry and motion
 airfoil_ID = "My-naca0012"
@@ -57,8 +57,6 @@ structure called `history`.
 For instance, we can access aerodynamic coefficients with:
 
 ```@example plotting
-using Plots
-
 # Plotting the drag coefficient
 plot(airfoil.history.t, airfoil.history.acn[:, 1])
 
