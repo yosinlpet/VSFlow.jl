@@ -60,7 +60,7 @@ uniform(vx, vy, α̇) = t -> ([-vx*t, vy*t, -α̇*t], [-vx, vy, -α̇], [0, 0, 0
     heavepitch(h0, αmax, ψ1, ψ2, strouhal)(t)
 
 Return the vector `[x, ẋ, ẍ]` corresponding to a heaving & pitching motion where
-`x = [X, Y, α]`.
+`x = [-X, Y, α]`.
 """
 heavepitch(h0, αmax, ψ1, ψ2, strouhal) = t -> begin
 	ω = strouhal*pi/h0

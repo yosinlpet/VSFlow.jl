@@ -253,10 +253,6 @@ mutable struct LinearPanel <: Panel
 	profID::String
 end
 
-function LinearPanel(X1, Y1, X2, Y2, Xc, Yc, b, θ, profID)
-	return LinearPanel(X1, Y1, X2, Y2, Xc, Yc, b, θ, profID)
-end
-
 """
     getparams(p::LinearPanel, X, Y)
 

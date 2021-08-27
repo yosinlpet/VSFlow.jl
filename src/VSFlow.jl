@@ -14,7 +14,6 @@ export Profile, profilerun, setinitvelocity
 export getimpulse, getboundpotential, getnoca!, getcoeffimpulse!, getcoeffpotential!
 
 const EPS = eps()
-Base.show(io::IO, x::Union{Float64,Float32}) = Base.Grisu._show(io, x, Base.Grisu.SHORTEST, 0, true, false)
 
 """
 PROFILE object
@@ -99,7 +98,7 @@ function Profile(; id, profileshape::Function, x0, ẋ0, N, dt, T,
     η, Tmin, sheet_size = lumpargs
 
 	x0[1] -= .25
-	panels = genprofile(profileshape, N, profID, x0[1:end-1])
+	panels = genprofile(profileshape, N, id, x0[1:end-1])
 	γs = zeros(N + 1)
 	average_length = sum(2 .* map(p->p.b, panels))/N
 
@@ -853,19 +852,19 @@ function logresults(p::Profile, is_init, t=0., mem=0, η=0.)
 end
 
 """
-    profilerun(p::Profile, is_write, is4thorder, accfunc, motion_args, show=false)
+    profilerun(p::Profile, accfunc, motion_args, iswrite, isshow=false; is4thorder=true)
 
 Simulate the testcase.
 
 # Arguments
  - `p`: `Profile` simulation to run.
- - `is_write`: `Bool` indicating if the results are saved into a file.
  - `accfunc`: `Function` giving the force applied on the pivot point of the body.
  - `motion_args`: array containing parameters to feed `accfunc` with.
- - `show`: `Bool` indicating whether an animation has to be generated.
+ - `iswrite`: `Bool` indicating if the results are saved into a file.
+ - `isshow = false`: `Bool` indicating whether an animation has to be generated.
 
 # Keyword Arguments
- - `is4thorder`: `Bool` indicating if the time marching is RK4 or ForwardEuler.
+ - `is4thorder = true`: `Bool` indicating if the time marching is RK4 or ForwardEuler.
 """
 function profilerun(p::Profile, accfunc, motion_args, iswrite, isshow=false; is4thorder=true)
 	run(`echo "==================================================================="`)
@@ -882,11 +881,11 @@ function profilerun(p::Profile, accfunc, motion_args, iswrite, isshow=false; is4
 	println("Blob δ           :"*string(p.δ))
 	println("-----------------------------------------------------------")
 
-	is_write && logresults(p, true)
+	iswrite && logresults(p, true)
 	setγs!(p)
 
 	count::UInt64 = 0
-	if show
+	if isshow
 		anim = Animation()
 	end
 	while(p.timelapse <= p.T + p.dt)
@@ -895,18 +894,18 @@ function profilerun(p::Profile, accfunc, motion_args, iswrite, isshow=false; is4
 		end
 
 		η = 0.
-		setforcecontrol!(p, accfunc(p.timelapse, motion_args...)[3]...)
+		setforcecontrol!(p, accfunc(p.timelapse)[3]...)
 		if p.islumped
 			η, t, bytes, _, _ = @timed lumpvortices!(p)
 		else
 			_, t, bytes, _, _ = @timed step!(p, is4thorder)
 		end
-		is_write && logresults(p, false, t, bytes, η)
+		iswrite && logresults(p, false, t, bytes, η)
 		count += 1
 
 		skip=1
 		##Animation
-		if show && count%skip ==0
+		if isshow && count%skip ==0
 			x = map(vp->vp.X, p.vortex_points)
 			y = map(vp->vp.Y, p.vortex_points)
 			Γ = map(vp->vp.Γ, p.vortex_points)
@@ -922,7 +921,7 @@ function profilerun(p::Profile, accfunc, motion_args, iswrite, isshow=false; is4
 		end
 	end
 
-	if show
+	if isshow
 		gif(anim, p.fname*".gif", fps=20)
 	end
 
