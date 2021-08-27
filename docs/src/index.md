@@ -45,7 +45,6 @@ motion_args = ()
 airfoil = Profile(airfoil_ID, shape, N, initial_position, dt, T, δ, ϵ, maxthickness)
 setinitvelocity(airfoil, steady(-dt/2, motion_args...)[2]...)
 @time profilerun(airfoil, filewrite, steady, motion_args, animate)
-end
 ```
 
 Documentation for [VSFlow](https://github.com/yosinlpet/VSFlow.jl/dev).
