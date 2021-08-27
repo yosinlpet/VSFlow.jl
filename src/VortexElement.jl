@@ -85,12 +85,12 @@ end
 Computes the gradient of induced velocity at position `X`, `Y`
 due to a change of position of `vp`.
 
-Input :
-    -`vp` : sensitive point vortex
-    -`X`  : X position where velocity is computed
-    -`Y`  : Y position where velocity is computed
-    -`θ`  : rotation angle
-    -`δ`  : Gaussian kernel cut-off width
+# Arguments
+ - `vp` : sensitive point vortex
+ - `X`  : X position where velocity is computed
+ - `Y`  : Y position where velocity is computed
+ - `θ`  : rotation angle
+ - `δ`  : Gaussian kernel cut-off width
 """
 function getvelocitygradient(vp::VortexPoint, X, Y, θ, δ)
 	coeff = -pi2_inv/norm2(X - vp.X, Y - vp.Y, δ)^2
@@ -291,13 +291,13 @@ end
 
 Get the circulation induced by the motion of panel `p`.
 
-Input:
-    -`p`  : the linear panel to integrate on
-    -`ω`  : angular velocity in the z direction
-    -`Ut` : translational horizontal body velocity
-    -`Vt` : translational vertical body velocity
-    -`X0` : position X of the center of rotation of the body
-    -`Y0` : position Y of the center of rotation of the body
+# Arguments
+ - `p`  : the linear panel to integrate on
+ - `ω`  : angular velocity in the z direction
+ - `Ut` : translational horizontal body velocity
+ - `Vt` : translational vertical body velocity
+ - `X0` : position X of the center of rotation of the body
+ - `Y0` : position Y of the center of rotation of the body
 """
 function getmotionkelvin(p::LinearPanel, ω, Ut, Vt, X0, Y0)
 	x0, y0 = inpanelframe(p, X0, Y0)
@@ -312,16 +312,16 @@ Get the velocity parameters at point `X`, `Y` due to the motion of panel `p`.
 Integrals are performed in the panel frame of reference then re-cast
 in the inertial frame through a rotation.
 
-Input:
-    -`p`  : the linear panel to integrate on
-    -`X`  : position X where we want the velocity induced by the body motion
-    -`Y`  : position Y where we want the velocity induced by the body motion
-    -`ω`  : angular velocity in the z direction
-    -`Ut` : translational horizontal body velocity
-    -`Vt` : translational vertical body velocity
-    -`X0` : position X of the center of rotation of the body
-    -`Y0` : position Y of the center of rotation of the body
-    -`vs` : stretching velocity
+# Arguments
+ - `p`  : the linear panel to integrate on
+ - `X`  : position X where we want the velocity induced by the body motion
+ - `Y`  : position Y where we want the velocity induced by the body motion
+ - `ω`  : angular velocity in the z direction
+ - `Ut` : translational horizontal body velocity
+ - `Vt` : translational vertical body velocity
+ - `X0` : position X of the center of rotation of the body
+ - `Y0` : position Y of the center of rotation of the body
+ - `vs` : stretching velocity
 """
 function getmotionparams(p::LinearPanel, X, Y, ω, Ut, Vt, X0, Y0, vs=0)
 	(p.b == 0) && return zeros(2)
@@ -342,13 +342,13 @@ end
     getinducedvelocity(p::LinearPanel, XY, k, γL, γR, ω, Ut, Vt, Xp, Yp, vs)
 
 Computes the velocity due to panel `p` at location `XY`
-k specifies which integral is required:
-    0 full integral; vortex
-    1 full integral; source
-    2 half-left integral; vortex
-    3 half-left integral; source
-    4 half-right integral; vortex
-    5 half-right integral; source
+`k` specifies which integral is required:
+ - `0` full integral; vortex
+ - `1` full integral; source
+ - `2` half-left integral; vortex
+ - `3` half-left integral; source
+ - `4` half-right integral; vortex
+ - `5` half-right integral; source
 """
 function getinducedvelocity(p::LinearPanel, XY, k, γL, γR, ω, Ut, Vt, Xp, Yp, vs=0)
     @assert 0 ≤ k < 6
@@ -390,19 +390,19 @@ rotated in the inertial frame of reference.
 Inertial frame: `X`,
 Panel frame:   `-x + x'`
 
-Input:
-    -`p`  : the linear panel to integrate on
-    -`γL` : vortex strength on the left side of the panel (in its frame)
-    -`γR` : vortex strength on the right side of the panel
-    -`ω`  : angular velocity in the z direction
-    -`Ut` : translational horizontal body velocity
-    -`Vt` : translational vertical body velocity
-    -`X0` : position X of origin of the inertial frame
-    -`Y0` : position Y of origin of the inertial frame
-    -`Xp` : position X of the center of rotation of the body
-    -`Yp` : position Y of the center of rotation of the body
-    -`nc` : need body velocity contribution?
-    -`vs` : stretching velocity
+# Arguments
+ - `p`  : the linear panel to integrate on
+ - `γL` : vortex strength on the left side of the panel (in its frame)
+ - `γR` : vortex strength on the right side of the panel
+ - `ω`  : angular velocity in the z direction
+ - `Ut` : translational horizontal body velocity
+ - `Vt` : translational vertical body velocity
+ - `X0` : position X of origin of the inertial frame
+ - `Y0` : position Y of origin of the inertial frame
+ - `Xp` : position X of the center of rotation of the body
+ - `Yp` : position Y of the center of rotation of the body
+ - `nc` : need body velocity contribution?
+ - `vs` : stretching velocity
 """
 function getimpulse(p::LinearPanel, γL, γR, ω, Ut, Vt, X0, Y0, Xp, Yp, nc, vs=0)
 	Θ = π+p.θ
@@ -433,11 +433,11 @@ If vortex strength crosses the x axis, then the panel is split into to smaller
 panels of positive and negative strengths.
 In the case it is split, then the id is modified to be able to retrace it later.
 
-Input:
-    -`p`  : the linear panel to integrate on
-    -`id` : the id of the panel
-    -`γL` : vortex strength on the left side of the panel (in its frame)
-    -`γR` : vortex strength on the right side of the panel
+# Arguments
+ - `p`  : the linear panel to integrate on
+ - `id` : the id of the panel
+ - `γL` : vortex strength on the left side of the panel (in its frame)
+ - `γR` : vortex strength on the right side of the panel
 """
 function getmonopolevortex(p::LinearPanel, id, γL, γR, ω, Ut, Vt, Xp, Yp, vs=0)
 	Θ = π+p.θ
@@ -466,9 +466,9 @@ If vortex strength crosses the x axis, then the panel is split into to smaller
 panels of positive and negative strengths.
 In the case it is split, then the id is modified to be able to retrace it later.
 
-Input:
-    -`p`  : the linear panel to integrate on
-    -`id` : the id of the panel
+# Arguments
+ - `p`  : the linear panel to integrate on
+ - `id` : the id of the panel
 """
 function getmonopolesource(p::LinearPanel, id, ω, Ut, Vt, Xp, Yp)
     @assert id < 1e9
