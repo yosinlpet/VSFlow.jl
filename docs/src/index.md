@@ -31,8 +31,7 @@ animate = true   # generate animation
 filewrite = true # save results to file
 
 # Body geometry
-shape = naca00
-maxthickness = 12
+shape = naca00(12)
 initial_position = [0, 0, deg2rad(10)]
 airfoil_ID = 01
 
@@ -42,9 +41,9 @@ function steady(t)
 end
 motion_args = ()
 
-airfoil = Profile(airfoil_ID, shape, N, initial_position, dt, T, δ, ϵ, maxthickness)
+airfoil = Profile(id = airfoil_ID, profileshape = shape, N = N, position = initial_position, dt = dt, T = T, δ = δ, ϵ = ϵ)
 setinitvelocity(airfoil, steady(-dt/2, motion_args...)[2]...)
-@time profilerun(airfoil, filewrite, steady, motion_args, animate)
+@time profilerun(airfoil, steady, motion_args, filewrite, animate)
 ```
 
 Documentation for [VSFlow](https://github.com/yosinlpet/VSFlow.jl/dev).

@@ -7,7 +7,7 @@
 """
     gaw1(x)
 
-Return the coordinates of a GAW1 airfoil.
+Return the `y` coordinates of a GAW1 airfoil.
 """
 function gaw1(x)
 	ye = @. .278536sqrt(x) - .148567x + .006397x^2 - .220980x^3 + .081084x^4
@@ -16,42 +16,33 @@ function gaw1(x)
 end
 
 """
-    naca00(x; kwargs...)
+    naca00(ZZ)(x)
 
-Return the coordinates of a NACA00ZZ airfoil.
-
-# Keyword arguments:
- - `ZZ = 12`: max thickness (in % of the chord) of the airfoil.
+Return the `y` coordinates of a NACA00ZZ airfoil.
 """
-function naca00(x; ZZ=12)
-	ye = @. .05ZZ*(.2969sqrt(x) - .1260x - .3516x^2 + .2843x^3 - .1036x^4)
-	yi = -ye
-	return [ye, yi]
+naca00(ZZ) = x -> begin
+    ye = @. .05ZZ*(.2969sqrt(x) - .1260x - .3516x^2 + .2843x^3 - .1036x^4)
+    yi = -ye
+    return [ye, yi]
 end
 
 """
-    circle(x; kwargs...)
+    circle(R)(x)
 
-Return the coordinates of a circle.
-
-# Keyword arguments:
- - `R = .5`: radius of the circle.
+Return the `y` coordinates of a circle of radius `R`.
 """
-function circle(x; R=.5)
+circle(R) = x -> begin
 	ye = @. sqrt(R^2 - (x-R)^2)
 	yi = -ye
 	return [ye, yi]
 end
 
 """
-    ellipse(x; kwargs...)
+    ellipse(B)(x)
 
-Return the coordinates of an ellipse.
-
-# Keyword arguments:
- - `B = .5`: half height of the ellipse.
+Return the `y` coordinates of an ellipse.
 """
-function ellipse(x; B=.5)
+ellipse(B) = x -> begin
 	ye = @. .5b*sqrt(1 - 4(x-.5)^2)
 	yi = -ye
 	return [ye, yi]

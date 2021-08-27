@@ -3,7 +3,6 @@ module VSFlow
 using LinearAlgebra
 using Printf
 using Logging
-using Random
 using Plots
 
 include("VortexElement.jl")
@@ -16,6 +15,7 @@ export getimpulse, getboundpotential, getnoca!, getcoeffimpulse!, getcoeffpotent
 
 const EPS = eps()
 Base.show(io::IO, x::Union{Float64,Float32}) = Base.Grisu._show(io, x, Base.Grisu.SHORTEST, 0, true, false)
+
 """
 PROFILE object
 """
@@ -57,6 +57,7 @@ mutable struct Profile
 	cps::Array{Float64, 1}
 	pcps::Array{Float64, 1}
 	Bs::Vector{Float64}
+
 	#Lumping
 	η::Float64
 	τ::Int64
@@ -64,58 +65,49 @@ mutable struct Profile
 	v_corr::Vector{Float64}
 	sheet_size::Int64
 	last_vp_ind::Int64
-	rng::MersenneTwister
+    islumped::Bool
 	profID::String
 end
 
 """
-    Profile(id, profile::Function, N, position, dt, T, δ, ϵ, rng, is_comb, lump, args...)
+    Profile(; id, profileshape::Function, N, position, dt, T, δ, ϵ, (η, Tmin, Smin) = zeros(3))
 
 Constructs a `Profile` object.
 
-# Arguments
+# Keyword Arguments
  - `id`: `String` used to identify the profile.
- - `profile`: `function` determining the profile shape.
+ - `profileshape`: `function` determining the profile shape.
  - `N`: number of panels on the surface of the profile.
  - `position`: position of the pivot point of the profile.
  - `dt`: timestep of the simulation.
  - `T`: horizon time.
- - `δ`: kernel cut-off width.
- - `ϵ`: percentage of the average panel length to chop the trailing edge.
- - `rng`: random number generator
- - `is_comb`: `Bool` indicating whether a random comb of dipoles hit the body.
- - `lump`: `Bool` indicating whether the lumging of vortices should occur.
+ - `δ = 1e-2`: kernel cut-off width.
+ - `ϵ = 1e-2`: percentage of the average panel length to chop the trailing edge.
+ - `η = 0`: maximum error due to lumping.
+ - `Tmin = 0`: minimum time between two successive active vortices.
+ - `Smin = 0`: minimum vortex sheet length in the wake.
 
-# Additional Arguments if `lump==true`
- - `η`: maximum error due to lumping.
- - `Tmin`: minimum time between two successive active vortices.
- - `sheet_size`: minimum vortex sheet length in the wake.
-
-# Additional Arguments for `profile`
- - `ZZ`: body maximum thickness (in % of the chord).
+!!! Note
+If `eta`, `Tmin`, `Smin` are all `0`, then no lumping operation occurs.
 """
-function Profile(id, profile::Function, N, position,
-				 dt, T, δ, ϵ, rng, is_comb, lump, args...)
+function Profile(; id, profileshape::Function, N, position, dt, T,
+                    δ = 1e-2,
+                    ϵ = 1e-2,
+                    lumpargs = zeros(3))
 	iseven(N) || error("Need an even number of panels!")
-	profID = "profile-$id"
-	η = 0
-	Tmin = 0
-	sheet_size = 0
-	if lump
-		η = args[1]
-		Tmin = args[2]
-		sheet_size = args[3]
-	end
+    islumped = (lumpargs != zeros(3))
+    η, Tmin, sheet_size = lumpargs
+
 	position[1] -= .25
-	panels = genprofile(profile, N, profID, position[1:end-1], args[end])
+	panels = genprofile(profileshape, N, profID, position[1:end-1])
 	γs = zeros(N + 1)
 	average_length = sum(2 .* map(p->p.b, panels))/N
 
-	vortex_points = dipolecombgenerator(rng, T, δ, is_comb)
+    vortex_points = []
 	trajectoryx = [position[1] + .25]
 	trajectoryy = [position[2]]
-	fname = "naca00"*string(args[end])*"_np"*string(N)*"_dt"*string(dt)*"_T"*string(T)*"_dv"*string(δ)*"_eps"*string(ϵ)
-	lump && (fname = fname*"_lump_errMax"*string(η)*"_Tmin"*string(Tmin)*"_ss"*string(sheet_size))
+	fname = id*"_np"*string(N)*"_dt"*string(dt)*"_T"*string(T)*"_dv"*string(δ)*"_eps"*string(ϵ)
+	islumped && (fname = fname*"_lump_errMax"*string(η)*"_Tmin"*string(Tmin)*"_ss"*string(sheet_size))
 	fname = replace(fname, "."=>"")
 
 	pivot_location = [position[1] + .25, position[2]]
@@ -138,18 +130,18 @@ function Profile(id, profile::Function, N, position,
 	b = dt - ϵ*average_length
 	X2 = X1 + 2b*cos(θg)
 	Y2 = Y1 - 2b*sin(θg)
-	constant_panel = BuildPanel(ConstantPanel, X1, Y1, X2, Y2, profID)
+	constant_panel = BuildPanel(ConstantPanel, X1, Y1, X2, Y2, id)
 	cropedge!(constant_panel, ϵ*average_length, false)
 	cropedge!(panels[1], ϵ*average_length, false)
 	cropedge!(panels[end], ϵ*average_length, true)
 	p0 = [zeros(3), zeros(3), zeros(3), zeros(3)]
 	n0 = [zeros(3), zeros(3), zeros(3), zeros(3)]
 	ϕs0 = [zeros(N+1), zeros(N+1), zeros(N+1), zeros(N+1)]
-	return Profile(profile, N, panels, V, vortex_points, constant_panel, position[end],
+	return Profile(profileshape, N, panels, V, vortex_points, constant_panel, position[end],
 				   0, γs, 0, average_length, dt, T, δ, ϵ, 0,
 				   true, θg, θ0, θ1, θ2, p0, n0, ϕs0, constant_panel, pivot_location, 0, 0,
 				   zeros(3), trajectoryx, trajectoryy, trailing, fname, zeros(N+2, N+2),
-				   zeros(N+1), zeros(N), zeros(N), η, 0, Tmin, zeros(2), sheet_size, 1, rng, profID)
+				   zeros(N+1), zeros(N), zeros(N), η, 0, Tmin, zeros(2), sheet_size, 1, islumped, id)
 end
 
 function copier!(p::Profile, p2::Profile)
@@ -195,7 +187,7 @@ function copier!(p::Profile, p2::Profile)
 	p.v_corr = p2.v_corr
 	p.sheet_size = p2.sheet_size
 	p.last_vp_ind = p2.last_vp_ind
-	p.rng = p2.rng
+    p.islumped = p2.islumped
 	p.profID = p2.profID
 	return nothing
 end
@@ -205,15 +197,10 @@ end
 
 Generate a profile with a wedged trailing edge.
 """
-function genprofile(profile::Function, N::Int64, profID, position::Array, args...)
+function genprofile(profile::Function, N::Int64, profID, position::Array)
 	θ = range(0, pi, length=N÷2 + 1)
 	x = @. .5cos(θ) + .5
-
-	if length(args) == 1
-		ye, yi = profile(x, args[1])
-	else
-		ye, yi = profile(x)
-	end
+    ye, yi = profile(x)
 
 	L = []
 	for i in 1:length(x)-1
@@ -312,47 +299,6 @@ function motionupdate!(p::Profile, X, Ẋ, t)
 	Y1 = .5(p.panels[1].Y1 + p.panels[end].Y2)
 	p.trailing = [X1, Y1]
 	return nothing
-end
-
-"""
-dipolecombgenerator(rng::MersenneTwister, T, δ, threshold=1e-2)
-"""
-function dipolecombgenerator(rng::MersenneTwister, T, δ, is_comb, threshold=5e-3)
-	dipoles = []
-	!is_comb && return dipoles
-	n_dip = Random.rand(rng, 1:floor(UInt64, .4*T))
-
-	d = .4 + .8Random.rand(rng)
-	v_center = .05 + .25Random.rand(rng)
-	Γ = .5pi*d*v_center
-	lim = sqrt(.5d*Γ/(pi*threshold) + (.5d)^2)
-	sn1 = Random.rand(rng, [-1., 1.])
-	sn2 = Random.rand(rng, [-1., 1.])
-	X = -(lim + (.5T - lim)Random.rand(rng))
-	Y = .3 + .8Random.rand(rng) - .5Γ*X/(pi*d)
-	push!(dipoles, VortexPoint(X + .5d, sn1*Y, -sn2*Γ))
-	push!(dipoles, VortexPoint(X - .5d, sn1*Y, sn2*Γ))
-	last_d = d
-
-	for _ in 1:n_dip
-		d = .4 + .8Random.rand(rng)
-		v_center = .05 + .25Random.rand(rng)
-		Γ = .5pi*d*v_center
-		vp = dipoles[end]
-		old_lim = sqrt(.5last_d*abs(vp.Γ)/(pi*threshold) + (.5d)^2)
-		lim = sqrt(.5d*Γ/(pi*threshold) + (.5d)^2)
-		sn1 = Random.rand(rng, [-1., 1.])
-		sn2 = Random.rand(rng, [-1., 1.])
-		last_X = -vp.X + .5last_d + max(lim, old_lim)
-		X = -(last_X + (.5T - last_X)Random.rand(rng))
-		Y = .3 + .8Random.rand(rng) - .5Γ*X/(pi*d)
-		if T - last_X >= 0
-			push!(dipoles, VortexPoint(X + .5d, sn1*Y, -sn2*Γ))
-			push!(dipoles, VortexPoint(X - .5d, sn1*Y, sn2*Γ))
-			last_d = d
-		end
-	end
-	return dipoles
 end
 
 """
@@ -920,20 +866,21 @@ function logresults(p::Profile, is_init, t=0., mem=0, η=0.)
 end
 
 """
-    profilerun(p::Profile, is_write, is_lumped, is4thorder, forcefun, motion_args, show=false)
+    profilerun(p::Profile, is_write, is4thorder, accfunc, motion_args, show=false)
 
 Simulate the testcase.
 
 # Arguments
  - `p`: `Profile` simulation to run.
  - `is_write`: `Bool` indicating if the results are saved into a file.
- - `is_lumped`: `Bool` indicating if vortices have to be lumped together.
- - `is4thorder`: `Bool` indicating if the time marching is RK4 or ForwardEuler.
- - `forcefun`: `function` giving the force applied on the pivot point of the body.
- - `motion_args`: array containing parameters to feed `forcefun` with.
+ - `accfunc`: `Function` giving the force applied on the pivot point of the body.
+ - `motion_args`: array containing parameters to feed `accfunc` with.
  - `show`: `Bool` indicating whether an animation has to be generated.
+
+# Keyword Arguments
+ - `is4thorder`: `Bool` indicating if the time marching is RK4 or ForwardEuler.
 """
-function profilerun(p::Profile, is_write, is_lumped, is4thorder, forcefun, motion_args, show=false)
+function profilerun(p::Profile, accfunc, motion_args, iswrite, isshow=false; is4thorder=true)
 	run(`echo "==================================================================="`)
 	run(`figlet -f larry3d Unsteady Panels`)
 	run(`echo "==================================================================="`)
@@ -961,8 +908,8 @@ function profilerun(p::Profile, is_write, is_lumped, is4thorder, forcefun, motio
 		end
 
 		η = 0.
-		setforcecontrol!(p, forcefun(p.timelapse, motion_args...)[3]...)
-		if is_lumped
+		setforcecontrol!(p, accfunc(p.timelapse, motion_args...)[3]...)
+		if p.islumped
 			η, t, bytes, _, _ = @timed lumpvortices!(p)
 		else
 			_, t, bytes, _, _ = @timed step!(p, is4thorder)
