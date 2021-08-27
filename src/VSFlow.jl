@@ -799,8 +799,6 @@ Simulate the testcase.
 """
 function profilerun(p::Profile, accfunc, isshow=false; is4thorder=true)
 	run(`echo "==================================================================="`)
-	run(`figlet -f larry3d VSFlow.jl`)
-	run(`echo "==================================================================="`)
 	run(pipeline(`git log`, `head -6`))
 	run(`echo "==================================================================="`)
 	println(" Params:")
