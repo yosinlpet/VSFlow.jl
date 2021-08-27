@@ -49,12 +49,12 @@ ellipse(B) = x -> begin
 end
 
 """
-    uniform(vx, vy)(t)
+    uniform(vx, vy, α̇)(t)
 
 Return the vector `[x, ẋ, ẍ]` corresponding to a uniform straight motion in
-the `[-X, +Y]` direction  with velocity `[vx, vy]` where `x = [X, Y, α]`.
+the `[-X, Y, -θ]` direction  with velocity `[vx, vy, α̇]`.
 """
-uniform(vx, vy) = t -> ([-vx*t, vy*t, 0], [-vx, vy, 0], [0, 0, 0])
+uniform(vx, vy, α̇) = t -> ([-vx*t, vy*t, -α̇*t], [-vx, vy, -α̇], [0, 0, 0])
 
 """
     heavepitch(h0, αmax, ψ1, ψ2, strouhal)(t)

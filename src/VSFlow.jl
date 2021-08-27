@@ -8,7 +8,7 @@ using Plots
 include("VortexElement.jl")
 include("Airfoil.jl")
 
-export heavepitch, circularmotion
+export uniform, heavepitch, circularmotion
 export naca00, gaw1, circle, ellipse
 export Profile, profilerun, setinitvelocity
 export getimpulse, getboundpotential, getnoca!, getcoeffimpulse!, getcoeffpotential!

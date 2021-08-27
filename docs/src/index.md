@@ -32,7 +32,7 @@ filewrite = true # save results to file
 # Body geometry and motion
 airfoil_ID = "My-naca0012"
 shape = naca00(12.)
-motion = uniform(1., 0.)
+motion = uniform(1., 0., 0.)
 initial_position = [0., 0., deg2rad(10.)]
 initial_velocity = motion(0.)[2]
 
