@@ -28,6 +28,7 @@ profilerun
 
 ## Post processing
 ```@docs
+History
 getimpulse(p::Profile)
 getboundpotential
 getcoeffimpulse!

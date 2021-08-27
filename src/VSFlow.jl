@@ -11,8 +11,8 @@ include("History.jl")
 
 export uniform, heavepitch, circularmotion
 export naca00, gaw1, circle, ellipse
-export Profile, profilerun, setinitvelocity
-export getimpulse, getboundpotential, getnoca!, getcoeffimpulse!, getcoeffpotential!
+export Profile, profilerun
+export History, getimpulse, getboundpotential, getnoca!, getcoeffimpulse!, getcoeffpotential!
 
 const EPS = eps()
 

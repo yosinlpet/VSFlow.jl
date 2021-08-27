@@ -45,11 +45,11 @@ airfoil = Profile(id = airfoil_ID,
                     dt = dt,
                     T = T)
 
-profilerun(airfoil, motion, filewrite, animate)
+profilerun(airfoil, motion, animate)
 ```
 ![Impulsively started NACA0012](assets/My-naca0012_np100_dt005_T5_dv001_eps001.gif)
 
-# Results Post Processing
+# Post Processing Results
 
 A history of most useful data in the flow is saved at each time step in a data
 structure called `history`.
