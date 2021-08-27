@@ -131,51 +131,6 @@ function checkangle(θ)
 end
 
 """
-    heavepitch(t, h0, αmax, ψ1, ψ2, strouhal)
-
-Return the vector `[x, ẋ, ẍ]` corresponding to a heaving & pitching motion where
-`x = [X, Y, α]`.
-"""
-function heavepitch(t, h0, αmax, ψ1, ψ2, strouhal)
-	ω = strouhal*pi/h0
-	Y = h0*sin(ω*t + deg2rad(ψ1))
-	Ẏ = ω*h0*cos(ω*t + deg2rad(ψ1))
-	Ÿ = -(ω^2)*h0*sin(ω*t + deg2rad(ψ1))
-	Y⃛ = -(ω^3)*h0*cos(ω*t + deg2rad(ψ1))
-
-	αh = atan(-Ẏ)
-	α̇h = -Ÿ / (1+Ẏ^2)
-	α̈h = 2Ẏ*Ÿ^2/(1+Ẏ^2)^2 - Y⃛/(1 + Ẏ^2)
-
-	α = deg2rad(αmax)*sin(ω*t + deg2rad(ψ2)) - αh
-	α̇ = ω*deg2rad(αmax)*cos(ω*t + deg2rad(ψ2)) - α̇h
-	α̈ = -ω^2*deg2rad(αmax)*sin(ω*t + deg2rad(ψ2)) - α̈h
-	return [[-t, Y, α], [-1, Ẏ, α̇], [0, Ÿ, α̈]]
-end
-
-
-"""
-    circularmotion(t, R, strouhal)
-
-Return the vector `[x, ẋ, ẍ]` corresponding to a circular motion of radius `R` where
-`x = [X, Y, α]`.
-"""
-function circularmotion(t, R, strouhal)
-	ω = .5strouhal*pi/R
-	ωt = ω*t
-
-	X = R*cos(ωt)
-	Ẋ = -ω*R*sin(ωt)
-	Ẍ = -ω^2*R*cos(ωt)
-
-	Y = R*sin(ωt)
-	Ẏ = ω*R*cos(ωt)
-	Ÿ = -ω^2*R*sin(ωt)
-
-	return [[X, Y, -ωt+π/2], [Ẋ, Ẏ, -ω], [Ẍ, Ÿ, 0]]
-end
-
-"""
     gausslegendretriangle(f, fx, fy)
 
 Computes the integral of function `f(x,y)`

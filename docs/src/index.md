@@ -36,14 +36,11 @@ initial_position = [0, 0, deg2rad(10)]
 airfoil_ID = 01
 
 # Body motion
-function steady(t)
-	return [-t, 0, 0], [-1, 0, 0], [0, 0, 0]
-end
-motion_args = ()
+motion = uniform(1, 0)
 
 airfoil = Profile(id = airfoil_ID, profileshape = shape, N = N, position = initial_position, dt = dt, T = T, δ = δ, ϵ = ϵ)
-setinitvelocity(airfoil, steady(-dt/2, motion_args...)[2]...)
-@time profilerun(airfoil, steady, motion_args, filewrite, animate)
+setinitvelocity(airfoil, motion(-.5dt)[2]...)
+@time profilerun(airfoil, motion, filewrite, animate)
 ```
 
 Documentation for [VSFlow](https://github.com/yosinlpet/VSFlow.jl/dev).
