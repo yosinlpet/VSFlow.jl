@@ -47,6 +47,6 @@ airfoil = Profile(id = airfoil_ID,
 
 profilerun(airfoil, motion, filewrite, animate)
 ```
-![Impulsively started NACA0012](My-naca0012_np100_dt005_T5_dv001_eps001.gif)
+![Impulsively started NACA0012](assets/My-naca0012_np100_dt005_T5_dv001_eps001.gif)
 
 Documentation for [VSFlow](https://github.com/yosinlpet/VSFlow.jl).
