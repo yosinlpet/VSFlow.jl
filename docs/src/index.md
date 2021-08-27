@@ -29,24 +29,23 @@ dt = 5e-2        # time step
 animate = true   # generate animation
 filewrite = true # save results to file
 
-# Body geometry
-shape = naca00(12)
-initial_position = [0, 0, deg2rad(10)]
-airfoil_ID = 01
-
-# Body motion
-motion = uniform(1, 0)
+# Body geometry and motion
+airfoil_ID = "My-naca0012"
+shape = naca00(12.)
+motion = uniform(1., 0.)
+initial_position = [0., 0., deg2rad(10.)]
+initial_velocity = motion(0.)
 
 # Building the `Profile` object
 airfoil = Profile(id = airfoil_ID,
                     profileshape = shape,
+                    x0 = initial_position,
+                    ẋ0 = initial_velocity,
                     N = N,
-                    position = initial_position,
                     dt = dt,
                     T = T)
 
-setinitvelocity(airfoil, motion(-.5dt)[2]...)
 @time profilerun(airfoil, motion, filewrite, animate)
 ```
 
-Documentation for [VSFlow](https://github.com/yosinlpet/VSFlow.jl/dev).
+Documentation for [VSFlow](https://github.com/yosinlpet/VSFlow.jl).

@@ -70,7 +70,7 @@ mutable struct Profile
 end
 
 """
-    Profile(; id, profileshape::Function, N, position, dt, T, δ = 1e-2, ϵ = 1e-2, (η, Tmin, Smin) = zeros(3))
+    Profile(; id, profileshape::Function, x0, ẋ0, N, dt, T, δ = 1e-2, ϵ = 1e-2, (η, Tmin, Smin) = zeros(3))
 
 Constructs a `Profile` object.
 If `eta`, `Tmin`, `Smin` are all `0`, then no lumping operation occurs.
@@ -79,7 +79,8 @@ If `eta`, `Tmin`, `Smin` are all `0`, then no lumping operation occurs.
  - `id`: `String` used to identify the profile.
  - `profileshape`: `function` determining the profile shape.
  - `N`: number of panels on the surface of the profile.
- - `position`: position of the pivot point of the profile.
+ - `x0`: initial position `[X0, Y0, α0]` of the quarter chord of the profile.
+ - `ẋ0`: initial velocity `[Ẋ0, Ẏ0, α̇0]` of the quarter chord of the profile.
  - `dt`: timestep of the simulation.
  - `T`: horizon time.
  - `δ = 1e-2`: kernel cut-off width.
@@ -89,7 +90,7 @@ If `eta`, `Tmin`, `Smin` are all `0`, then no lumping operation occurs.
  - `Smin = 0`: minimum vortex sheet length in the wake.
 
 """
-function Profile(; id, profileshape::Function, N, position, dt, T,
+function Profile(; id, profileshape::Function, x0, ẋ0, N, dt, T,
                     δ = 1e-2,
                     ϵ = 1e-2,
                     lumpargs = zeros(3))
@@ -97,23 +98,24 @@ function Profile(; id, profileshape::Function, N, position, dt, T,
     islumped = (lumpargs != zeros(3))
     η, Tmin, sheet_size = lumpargs
 
-	position[1] -= .25
-	panels = genprofile(profileshape, N, profID, position[1:end-1])
+	x0[1] -= .25
+	panels = genprofile(profileshape, N, profID, x0[1:end-1])
 	γs = zeros(N + 1)
 	average_length = sum(2 .* map(p->p.b, panels))/N
 
     vortex_points = []
-	trajectoryx = [position[1] + .25]
-	trajectoryy = [position[2]]
+	trajectoryx = [x0[1] + .25]
+	trajectoryy = [x0[2]]
 	fname = id*"_np"*string(N)*"_dt"*string(dt)*"_T"*string(T)*"_dv"*string(δ)*"_eps"*string(ϵ)
 	islumped && (fname = fname*"_lump_errMax"*string(η)*"_Tmin"*string(Tmin)*"_ss"*string(sheet_size))
 	fname = replace(fname, "."=>"")
 
-	pivot_location = [position[1] + .25, position[2]]
+	pivot_location = [x0[1] + .25, x0[2]]
 	V = sum(map(pa->getbodyvolume(pa, pivot_location...), panels))
 	for p in panels
-		setangle!(p, position[end], pivot_location)
+		setangle!(p, x0[end], pivot_location)
 	end
+    U0, V0, α̇0 = ẋ0
 
 	θ0 = panels[1].θ - panels[end].θ + sign(panels[end].θ)*pi
 	θ0 = abs(atan(sin(θ0), cos(θ0)))
@@ -136,9 +138,9 @@ function Profile(; id, profileshape::Function, N, position, dt, T,
 	p0 = [zeros(3), zeros(3), zeros(3), zeros(3)]
 	n0 = [zeros(3), zeros(3), zeros(3), zeros(3)]
 	ϕs0 = [zeros(N+1), zeros(N+1), zeros(N+1), zeros(N+1)]
-	return Profile(profileshape, N, panels, V, vortex_points, constant_panel, position[end],
-				   0, γs, 0, average_length, dt, T, δ, ϵ, 0,
-				   true, θg, θ0, θ1, θ2, p0, n0, ϕs0, constant_panel, pivot_location, 0, 0,
+	return Profile(profileshape, N, panels, V, vortex_points, constant_panel, x0[end],
+				   -α̇0, γs, 0, average_length, dt, T, δ, ϵ, 0,
+				   true, θg, θ0, θ1, θ2, p0, n0, ϕs0, constant_panel, pivot_location, U0, V0,
 				   zeros(3), trajectoryx, trajectoryy, trailing, fname, zeros(N+2, N+2),
 				   zeros(N+1), zeros(N), zeros(N), η, 0, Tmin, zeros(2), sheet_size, 1, islumped, id)
 end
@@ -322,20 +324,6 @@ Update forces acting on the body pivot point.
 """
 function setforcecontrol!(p::Profile, fx, fy, mz)
 	p.force_control = [fx, fy, -mz]
-	return nothing
-end
-
-"""
-    setinitvelocity(p::Profile, u, v, α̇)
-
-Set the initial velocities of the body.
-Note: `α̇` represents the rate of change in AoA and is thus opposite to
-the angular velocity.
-"""
-function setinitvelocity(p::Profile, u, v, α̇)
-	p.Ut = u
-	p.Vt = v
-	p.ω = -α̇
 	return nothing
 end
 
