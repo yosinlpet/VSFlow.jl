@@ -40,7 +40,7 @@ end
 """
     ellipse(B)(x)
 
-Return the `y` coordinates of an ellipse.
+Return the `y` coordinates of an ellipse with half height `B`.
 """
 ellipse(B) = x -> begin
 	ye = @. .5b*sqrt(1 - 4(x-.5)^2)

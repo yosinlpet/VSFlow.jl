@@ -15,13 +15,14 @@ ellipse
 
 ## Airfoil motion
 ```@docs
+uniform
 heavepitch
 circularmotion
 ```
 
 ## Running the simulation
 ```@docs
-Profile(id, profile::Function, N, position, dt, T, δ, ϵ, rng, is_comb, lump, args...)
+Profile(;id, profile::Function, N, position, dt, T, δ, ϵ, lumpargs)
 setinitvelocity
 profilerun
 ```
