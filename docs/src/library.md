@@ -7,10 +7,10 @@ Depth = 2
 
 ## Airfoil geometries
 ```@docs
-naca00
-gaw1
 circle
 ellipse
+gaw1
+naca00
 ```
 
 ## Airfoil motion
