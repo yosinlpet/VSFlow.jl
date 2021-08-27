@@ -26,7 +26,7 @@ Profile(;id, profile::Function, N, position, dt, T, δ, ϵ, lumpargs)
 profilerun
 ```
 
-## Quantities of interest
+## Post processing
 ```@docs
 getimpulse(p::Profile)
 getboundpotential

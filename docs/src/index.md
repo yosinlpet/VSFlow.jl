@@ -49,4 +49,24 @@ profilerun(airfoil, motion, filewrite, animate)
 ```
 ![Impulsively started NACA0012](assets/My-naca0012_np100_dt005_T5_dv001_eps001.gif)
 
+# Results Post Processing
+
+A history of most useful data in the flow is saved at each time step in a data
+structure called `history`.
+
+For instance, we can access aerodynamic coefficients with:
+
+```@example plotting
+using Plots
+
+# Plotting the drag coefficient
+plot(airfoil.history.t, airfoil.history.acn[:, 1])
+
+# Plotting the lift coefficient
+plot(airfoil.history.t, airfoil.history.acn[:, 2])
+
+# Plotting the moment coefficient
+plot(airfoil.history.t, airfoil.history.acn[:, 3])
+```
+
 Documentation for [VSFlow](https://github.com/yosinlpet/VSFlow.jl).

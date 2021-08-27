@@ -7,6 +7,7 @@ using Plots
 
 include("VortexElement.jl")
 include("Airfoil.jl")
+include("History.jl")
 
 export uniform, heavepitch, circularmotion
 export naca00, gaw1, circle, ellipse
@@ -66,6 +67,7 @@ mutable struct Profile
 	last_vp_ind::Int64
     islumped::Bool
 	profID::String
+    history::History
 end
 
 """
@@ -137,11 +139,12 @@ function Profile(; id, profileshape::Function, x0, ẋ0, N, dt, T,
 	p0 = [zeros(3), zeros(3), zeros(3), zeros(3)]
 	n0 = [zeros(3), zeros(3), zeros(3), zeros(3)]
 	ϕs0 = [zeros(N+1), zeros(N+1), zeros(N+1), zeros(N+1)]
+    h = History(N, dt, T)
 	return Profile(profileshape, N, panels, V, vortex_points, constant_panel, x0[end],
 				   -α̇0, γs, 0, average_length, dt, T, δ, ϵ, 0,
 				   true, θg, θ0, θ1, θ2, p0, n0, ϕs0, constant_panel, pivot_location, U0, V0,
 				   zeros(3), trajectoryx, trajectoryy, trailing, fname, zeros(N+2, N+2),
-				   zeros(N+1), zeros(N), zeros(N), η, 0, Tmin, zeros(2), sheet_size, 1, islumped, id)
+				   zeros(N+1), zeros(N), zeros(N), η, 0, Tmin, zeros(2), sheet_size, 1, islumped, id, h)
 end
 
 function copier!(p::Profile, p2::Profile)
@@ -189,6 +192,7 @@ function copier!(p::Profile, p2::Profile)
 	p.last_vp_ind = p2.last_vp_ind
     p.islumped = p2.islumped
 	p.profID = p2.profID
+	p.history = p2.history
 	return nothing
 end
 
@@ -302,7 +306,7 @@ function motionupdate!(p::Profile, X, Ẋ, t)
 end
 
 """
-    globalvelocity(p::Profile, XY)
+    globalvelocity(p::Profile, XY, incloud=false)
 
 Return the velocity at point `XY`.
 
@@ -767,105 +771,33 @@ function setcps!(p::Profile, update=true, β=1.)
 end
 
 """
-    getcoeffpotential!(p::Profile)
+    getcoeffpotential!(p::Profile, update = true)
 
 Return the aerodynamic coefficients through pressure integration on the body.
+
+# Keyword Arguments
+ - `update = true`: indicates whether the impulse history has to be updated.
 """
-function getcoeffpotential!(p::Profile)
-	setcps!(p)
+function getcoeffpotential!(p::Profile, update = true)
+	setcps!(p, update)
 	cd, cl, cm = sum(map((pa, p1, p2)->getpressureforce(pa, p1, p2, p.pivot_location...), p.panels, p.cps[1:end-1], p.cps[2:end]))
 	return cd, cl, cm
 end
 
 """
-    getstate(p, n)
-
-Used for the gym model
-"""
-function getstate(p, n)
-	skip = div(p.N, n)
-	m = div(mod(p.N, n), 2)
-	setcps!(p)
-	pressures = p.cps[skip+m:skip:end-m]
-
-	#= L = [p.pivot_location[2], p.Vt, p.old_α, p.ω] =#
-	L = [p.old_α, p.ω]
-	io = open("pressures_"*p.fname*".txt", "a")
-	write(io, string(pressures)*"\n")
-	close(io)
-	return vcat(L, pressures)
-end
-
-getaoa(p) = rad2deg(atan(-p.Vt, -p.Ut) + p.old_α)
-
-"""
-    logresults2(p, is_init, t, mem)
-
-Results for the RL controller
-"""
-function logresults2(p::Profile, is_init, t=0., mem=0)
-	if is_init
-		io = open(p.fname*".txt", "w")
-		write(io,"time\tcd_i\tcl_i\tcm_i\tpx\tpy\tpz\tΓ_b\tθg\tγg\tα\tCPU_T\tBytes\tError\n")
-		close(io)
-		return nothing
-	else
-		cd_i, cl_i, cm_i = getcoeffimpulse!(p)
-		imp = getimpulse(p)
-
-		Γb = 2p.γg*p.constant_panel.b + sum(map(vp->vp.Γ, p.vortex_points))
-		α = getaoa(p)
-
-		io = open(p.fname*".txt", "a")
-		s = @sprintf "%.2f\t%.5f\t%.5f\t%.5f\t%.5f\t%.5f\t%.5f\t%.5f\t%.5f\t%.5f\t%.5f\t%.5f\t%d\n" p.timelapse cd_i cl_i cm_i imp[1] imp[2] imp[3] Γb (p.θg-p.old_α)/p.θ0 p.γg α t mem
-		write(io, s)
-		close(io)
-		return [cd_i, cl_i, cm_i]
-	end
-end
-
-"""
-    logresults(p, is_init, t, mem)
-
-Write results to a file.
-"""
-function logresults(p::Profile, is_init, t=0., mem=0, η=0.)
-	if is_init
-		io = open(p.fname*".txt", "w")
-		write(io,"time\tcd_i\tcl_i\tcm_i\tcd_p\tcl_p\tcm_p\tcd_b\tcl_b\tcm_b\tΓ_b\tθg\tγg\tα\tCPU_T\tBytes\tError\n")
-		close(io)
-		return nothing
-	else
-		cd_b, cl_b, cm_b = p.Bs[2], p.Bs[3], p.Bs[4]
-		cd_i, cl_i, cm_i = getcoeffimpulse!(p)
-		cd_p, cl_p, cm_p = getcoeffpotential!(p)
-
-		Γb = 2p.γg*p.constant_panel.b + sum(map(vp->vp.Γ, p.vortex_points))
-		α = getaoa(p)
-        θ = p.Bs[5]/p.θ0#p.panels[1].θ - .5p.θ0
-
-		io = open(p.fname*".txt", "a")
-		s = @sprintf "%.2f\t%.5f\t%.5f\t%.5f\t%.5f\t%.5f\t%.5f\t%.5f\t%.5f\t%.5f\t%.5f\t%.5f\t%.5f\t%.5f\t%.5f\t%d\t%f\n" p.timelapse cd_i cl_i cm_i cd_p cl_p cm_p cd_b cl_b cm_b Γb θ p.Bs[1] α t mem η
-		write(io, s)
-		close(io)
-	end
-end
-
-"""
-    profilerun(p::Profile, accfunc, iswrite, isshow=false; is4thorder=true)
+    profilerun(p::Profile, accfunc, isshow=false; is4thorder=true)
 
 Simulate the testcase.
 
 # Arguments
  - `p`: `Profile` simulation to run.
  - `accfunc`: `Function` giving the force applied on the pivot point of the body.
- - `iswrite`: `Bool` indicating if the results are saved into a file.
  - `isshow = false`: `Bool` indicating whether an animation has to be generated.
 
 # Keyword Arguments
  - `is4thorder = true`: `Bool` indicating if the time marching is RK4 or ForwardEuler.
 """
-function profilerun(p::Profile, accfunc, iswrite, isshow=false; is4thorder=true)
+function profilerun(p::Profile, accfunc, isshow=false; is4thorder=true)
 	run(`echo "==================================================================="`)
 	run(`figlet -f larry3d VSFlow.jl`)
 	run(`echo "==================================================================="`)
@@ -879,7 +811,6 @@ function profilerun(p::Profile, accfunc, iswrite, isshow=false; is4thorder=true)
 	println("Blob δ           :"*string(p.δ))
 	println("-----------------------------------------------------------")
 
-	iswrite && logresults(p, true)
 	setγs!(p)
 
 	count::UInt64 = 0
@@ -898,8 +829,15 @@ function profilerun(p::Profile, accfunc, iswrite, isshow=false; is4thorder=true)
 		else
 			_, t, bytes, _, _ = @timed step!(p, is4thorder)
 		end
-		iswrite && logresults(p, false, t, bytes, η)
 		count += 1
+
+		cd_p, cl_p, cm_p = getcoeffpotential!(p)
+		cd_i, cl_i, cm_i = getcoeffimpulse!(p)
+		Γb = 2p.γg*p.constant_panel.b + sum(map(vp->vp.Γ, p.vortex_points))
+        θ = p.Bs[5]/p.θ0
+        updatehistory!(p.history, count, p.timelapse, [p.pivot_location[1], p.pivot_location[2], p.old_α],
+                       [p.Ut, p.Vt, p.ω], [cd_p, cl_p, cm_p], [p.Bs[2], p.Bs[3], p.Bs[4]],
+                       [cd_i, cl_i, cm_i], getboundpotential(p), p.cps, Γb, θ)
 
 		skip=1
 		##Animation
