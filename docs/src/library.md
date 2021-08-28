@@ -31,9 +31,6 @@ profilerun
 History
 getimpulse(p::Profile)
 getboundpotential
-getcoeffimpulse!
-getcoeffpotential!
-getnoca!
 ```
 
 # Private API

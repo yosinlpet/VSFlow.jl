@@ -12,6 +12,7 @@ A structure allowing to record useful data.
  - `aci`: aerodynamic coefficients obtained with momentum conservation.
  - `ϕs`: velocity potential on body surface.
  - `cps`: pressure coefficients on body surface.
+ - `P`: impulse `[px, py, pm]`.
  - `Γ`: total body circulation.
  - `θ`: shedding angle (0 is the bissector).
 """
@@ -25,6 +26,7 @@ mutable struct History
     ϕs::Array{Float64, 2}
     cps::Array{Float64, 2}
     P::Array{Float64, 2}
+    NP::Array{Float64, 2}
     Γ::Array{Float64, 1}
     θ::Array{Float64, 1}
 end
@@ -32,7 +34,7 @@ end
 function History(N, dt, T)
     n = 2 + Int(T/dt)
     return History(zeros(n), zeros(n, 3), zeros(n, 3), zeros(n, 3), zeros(n, 3), zeros(n, 3),
-                   zeros(n, N+1), zeros(n, N+1), zeros(n, 3), zeros(n), zeros(n))
+                   zeros(n, N+1), zeros(n, N+1), zeros(n, 3), zeros(n, 3), zeros(n), zeros(n))
 end
 
 """
@@ -40,16 +42,10 @@ end
 
 Update history of the airfoil.
 """
-function updatehistory!(h::History, i, t, X, Ẋ, acp, acn, aci, ϕs, cps, P, Γ, θ)
+function updatehistory!(h::History, i, t, X, Ẋ, Γ, θ)
     h.t[i] = t
     h.X[i, :] = X
     h.Ẋ[i, :] = Ẋ
-    h.acp[i, :] = acp
-    h.acn[i, :] = acn
-    h.aci[i, :] = aci
-    h.ϕs[i, :] = ϕs
-    h.cps[i, :] = cps
-    h.P[i, :] = P
     h.Γ[i] = Γ
     h.θ[i] = θ
 end
@@ -73,6 +69,6 @@ Values with negative indices are replaced with zeros.
 """
 function getlastvalues(h::History, sym::Symbol, i, n)
     v = getfield(h, sym)
-    i < n &&  return [circshift(v, (-i, 0))[end-n+1:end, :][j, :] for j in 1:n]
-    return [v[i-n+1:i, :][j, :] for j in 1:n]
+    i < n &&  return [circshift(v, (-i, 0))[end-n+1:end, :][j, :] for j in n:-1:1]
+    return [v[i-n+1:i, :][j, :] for j in n:-1:1]
 end

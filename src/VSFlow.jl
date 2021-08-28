@@ -12,7 +12,7 @@ include("History.jl")
 export uniform, heavepitch, circularmotion
 export naca00, gaw1, circle, ellipse
 export Profile, profilerun
-export History, getimpulse, getboundpotential, getnoca!, getcoeffimpulse, getcoeffpotential!
+export History, getimpulse, getboundpotential
 
 const EPS = eps()
 
@@ -30,6 +30,7 @@ mutable struct Profile
 	ω::Float64
 	γs::Vector{Float64}
 	γg::Float64
+	oldγg::Float64
 	average_length::Float64
 	dt::Float64
 	T::Float64
@@ -39,11 +40,9 @@ mutable struct Profile
 	is_init::Bool
 	θg::Float64
 	θ0::Float64
+	β::Float64
 	θ1::Float64
 	θ2::Float64
-	old_impulse::Array{Array{Float64, 1}}
-	old_nocaimpulse::Array{Array{Float64, 1}}
-	old_ϕs::Array{Array{Float64, 1}}
 	old_panel::ConstantPanel
 	pivot_location::Array{Float64, 1}
 	Ut::Float64
@@ -52,8 +51,6 @@ mutable struct Profile
 	trailing::Array{Float64, 1}
 	fname::String
 	Ainv::Array{Float64, 2}
-	cps::Array{Float64, 1}
-	Bs::Vector{Float64}
 
 	#Lumping
 	η::Float64
@@ -131,15 +128,12 @@ function Profile(; id, profileshape::Function, x0, ẋ0, N, dt, T,
 	cropedge!(constant_panel, ϵ*average_length, false)
 	cropedge!(panels[1], ϵ*average_length, false)
 	cropedge!(panels[end], ϵ*average_length, true)
-	p0 = [zeros(3), zeros(3), zeros(3), zeros(3)]
-	n0 = [zeros(3), zeros(3), zeros(3), zeros(3)]
-	ϕs0 = [zeros(N+1), zeros(N+1), zeros(N+1), zeros(N+1)]
     h = History(N, dt, T)
 	return Profile(profileshape, N, panels, V, vortex_points, constant_panel, x0[end],
-				   -α̇0, γs, 0, average_length, dt, T, δ, ϵ, 0,
-				   true, θg, θ0, θ1, θ2, p0, n0, ϕs0, constant_panel, pivot_location, U0, V0,
+				   -α̇0, γs, 0, 0, average_length, dt, T, δ, ϵ, 0,
+				   true, θg, θ0, 0, θ1, θ2, constant_panel, pivot_location, U0, V0,
 				   zeros(3), trailing, fname, zeros(N+2, N+2),
-				   zeros(N+1), zeros(N), η, 0, Tmin, zeros(2), sheet_size, 1, islumped, id, h)
+				   η, 0, Tmin, zeros(2), sheet_size, 1, islumped, id, h)
 end
 
 function copier!(p::Profile, p2::Profile)
@@ -153,6 +147,7 @@ function copier!(p::Profile, p2::Profile)
 	p.ω = p2.ω
 	p.γs = p2.γs
 	p.γg = p2.γg
+	p.oldγg = p2.oldγg
 	p.average_length = p2.average_length
 	p.dt = p2.dt
 	p.T = p2.T
@@ -162,11 +157,9 @@ function copier!(p::Profile, p2::Profile)
 	p.is_init = p2.is_init
 	p.θg = p2.θg
 	p.θ0 = p2.θ0
+    p.β = p2.β
 	p.θ1 = p2.θ1
 	p.θ2 = p2.θ2
-	p.old_impulse = p2.old_impulse
-	p.old_nocaimpulse = p2.old_nocaimpulse
-	p.old_ϕs = p2.old_ϕs
 	p.old_panel = p2.old_panel
 	p.pivot_location = p2.pivot_location
 	p.Ut = p2.Ut
@@ -175,7 +168,6 @@ function copier!(p::Profile, p2::Profile)
 	p.trailing = p2.trailing
 	p.fname = p2.fname
 	p.Ainv = p2.Ainv
-	p.cps = p2.cps
 	p.η = p2.η
 	p.τ = p2.τ
 	p.Tmin = p2.Tmin
@@ -330,12 +322,11 @@ Return the fluid velocity at the trailing edge expressed in the inertial frame.
 function gettrailingedgevel!(p::Profile)
 	v1 = p.γs[1]
 	v2 = -p.γs[end]
-    β = atan(tan(.5p.θ0)*(v2-v1)/(v2+v1))
-    p.θ1 = .5p.θ0 + β
-    p.θ2 = .5p.θ0 - β
+    p.β = atan(tan(.5p.θ0)*(v2-v1)/(v2+v1))
+    p.θ1 = .5p.θ0 + p.β
+    p.θ2 = .5p.θ0 - p.β
 	p.θg = p.panels[1].θ - p.θ1
     u3 = .5*(v1*cos(p.θ1) + v2*cos(p.θ2))
-    p.Bs[5] = β
 
 	return [-u3*cos(p.θg), u3*sin(p.θg)]
 end
@@ -438,7 +429,6 @@ Transform the constant panel into a point vortex.
 Then recompute the vortex strength distribution on the body.
 """
 function resetconstantpanel!(p)
-	getnoca!(p, true)
 	X = .5(p.constant_panel.X1+p.constant_panel.X2)
 	Y = .5(p.constant_panel.Y1+p.constant_panel.Y2)
 	Γ = 2p.γg*p.constant_panel.b
@@ -450,10 +440,10 @@ function resetconstantpanel!(p)
 
 	X1 = p.trailing[1] + p.ϵ*p.average_length*cos(p.θg)
 	Y1 = p.trailing[2] - p.ϵ*p.average_length*sin(p.θg)
-	p.old_panel = p.constant_panel
+    p.old_panel = deepcopy(p.constant_panel)
 	placeconstantpanel!(p, X1, Y1)
-	p.Bs[1] = p.γg
 
+    p.oldγg = p.γg
 	p.γg = 0
 	setγs!(p)
 	return nothing
@@ -614,19 +604,11 @@ function setγs!(p::Profile)
 	@inbounds A[p.N+2, p.N+1] = cos(p.θ2)
 	@inbounds A[p.N+2, p.N+2] = -1
 
-	#= #Giesing-Maskell =#
-	#= bo = (p.Bs[1] < 0) =#
-	#= A[p.N+2, 1] = 1 =#
-	#= A[p.N+3, p.N+1] = 1 =#
-	#= A[p.N+2, p.N+2] = -1*bo =#
-	#= A[p.N+3, p.N+2] = -1*(!bo) =#
-
 	if p.constant_panel.b == 0
 		@inbounds p.Ainv = inv(A[1:p.N+1, 1:p.N+1])
 		@inbounds p.γs = p.Ainv * b[1:p.N+1]
 	else
 		p.Ainv = inv(A)
-		#= p.Ainv = pinv(A) =#
 		p.γs = p.Ainv * b
 	end
 
@@ -659,52 +641,44 @@ end
 
 
 """
-    getcoeffimpulse(p::Profile, idx)
+    setcoeffimpulse!(p::Profile, idx)
 
-Return aerodynamic coefficients computed with impulse conservation in the flow.
+Set aerodynamic coefficients computed with impulse conservation in the flow.
 """
-function getcoeffimpulse(p::Profile, idx)
+function setcoeffimpulse!(p::Profile, idx)
 	X0, Y0 = p.history.X[1, 1], p.history.X[1, 2]
 	xyz_imp = getimpulse(p::Profile)
-    oldimpulse = getlastvalues(p.history, :P, idx, 4)[end:-1:1]
-    println(oldimpulse)
-    f = -backwarddifference(xyz_imp, oldimpulse, p.dt)
+    oldimpulse = getlastvalues(p.history, :P, idx-1, 4)
 
-	cd, cl, cm = 2f
+	cd, cl, cm = -2backwarddifference(xyz_imp, oldimpulse, p.dt)
 	cm -= dot(p.pivot_location - [X0, Y0], [cl, -cd])
-	return [cd, cl, cm]
+
+    p.history.P[idx, :] = xyz_imp
+    p.history.aci[idx, :] = [cd, cl, cm]
 end
 
 """
-    getnoca!(p::Profile, update=true)
+    setcoeffnoca!(p::Profile, idx)
 
-Return aerodynamic coefficients computed with a control volume approach.
-
-# Keyword Arguments
- - `update = true`: indicates whether the impulse history has to be updated.
+Set aerodynamic coefficients computed with a control volume approach.
 """
-function getnoca!(p::Profile, update=true)
+function setcoeffnoca!(p::Profile, idx)
 	X0, Y0 = p.history.X[1, 1], p.history.X[1, 2]
-	Xp, Yp = p.pivot_location
+    Xp, Yp = p.pivot_location
 
-	u = 2p.constant_panel.b/p.dt
 	panels_impulse = sum(map((pa, γL, γR)->getimpulse(pa, γL, γR, p.ω, p.Ut, p.Vt, Xp, Yp, Xp, Yp, true), p.panels, p.γs[1:end-1], p.γs[2:end]))
-	energyflux = sum(map((pa, γL, γR)->getenergyflux(pa, γL, γR, p.ω, 0, 0, Xp, Yp, Xp, Yp), p.panels, p.γs[1:end-1], p.γs[2:end]))
+    oldnocaimpulse = getlastvalues(p.history, :NP, idx-1, 4)
 
-	vorticityflux = p.γg*u*([p.trailing[2]-Yp, Xp - p.trailing[1], -.5norm2.((p.trailing - p.pivot_location)...)])
+	u = 2p.old_panel.b/p.dt
+	energyflux = sum(map((pa, γL, γR)->getenergyflux(pa, γL, γR, p.ω, 0, 0, Xp, Yp, Xp, Yp), p.panels, p.γs[1:end-1], p.γs[2:end]))
+	vorticityflux = p.oldγg*u*([p.trailing[2]-Yp, Xp - p.trailing[1], -.5norm2.((p.trailing - p.pivot_location)...)])
 	Δm = sum(map(pa->getangularimpulsecorrection(pa, p.ω, 0, 0, p.Ut, p.Vt, Xp, Yp, Xp, Yp), p.panels))
 
-	f = energyflux - backwarddifference(panels_impulse, p.old_nocaimpulse, p.dt) - vorticityflux
-
-	if update
-		pop!(p.old_nocaimpulse)
-		pushfirst!(p.old_nocaimpulse, panels_impulse)
-	end
-
+	f = energyflux - backwarddifference(panels_impulse, oldnocaimpulse, p.dt) - vorticityflux
 	cd, cl, cm = 2f
-	p.Bs[2] = cd
-	p.Bs[3] = cl
-	p.Bs[4] = cm + Δm
+
+    p.history.NP[idx, :] = panels_impulse
+    p.history.acn[idx, :] = [cd, cl, cm + Δm]
 end
 
 """
@@ -724,17 +698,13 @@ function getboundpotential(p::Profile)
 end
 
 """
-    setcps!(p::Profile, update=true, β=1.)
+    setcoeffpotential!(p::Profile, idx)
 
-Update the pressure coefficient along the body.
-
-# Keyword Arguments
- - `update = true`: indicates whether the impulse history has to be updated.
- - `β = 1.0`: portion of a timestep.
+Set aerodynamic coefficients using pressure integration.
 """
-function setcps!(p::Profile, update=true, β=1.)
+function setcoeffpotential!(p::Profile, idx)
 	ϕs = getboundpotential(p)
-	dt = β*p.dt
+    oldϕs = getlastvalues(p.history, :ϕs, idx-1, 4)
 
 	X0, Y0 = p.pivot_location
 	Us = map(pa->p.Ut - p.ω*(pa.Y1 - Y0), p.panels)
@@ -742,26 +712,12 @@ function setcps!(p::Profile, update=true, β=1.)
 	push!(Us, p.Ut - p.ω*(p.panels[end].Y2 - Y0))
 	push!(Vs, p.Vt + p.ω*(p.panels[end].X2 - X0))
 
-	p.cps = 1. .+ norm2.(Us, Vs) .- p.γs.^2 .- 2backwarddifference(ϕs, p.old_ϕs, dt)
-	if update
-		pop!(p.old_ϕs)
-		pushfirst!(p.old_ϕs, ϕs)
-	end
-	return nothing
-end
+	cps = 1. .+ norm2.(Us, Vs) .- p.γs.^2 .- 2backwarddifference(ϕs, oldϕs, p.dt)
+	cd, cl, cm = sum(map((pa, p1, p2)->getpressureforce(pa, p1, p2, p.pivot_location...), p.panels, cps[1:end-1], cps[2:end]))
 
-"""
-    getcoeffpotential!(p::Profile, update = true)
-
-Return the aerodynamic coefficients through pressure integration on the body.
-
-# Keyword Arguments
- - `update = true`: indicates whether the impulse history has to be updated.
-"""
-function getcoeffpotential!(p::Profile, update = true)
-	setcps!(p, update)
-	cd, cl, cm = sum(map((pa, p1, p2)->getpressureforce(pa, p1, p2, p.pivot_location...), p.panels, p.cps[1:end-1], p.cps[2:end]))
-	return cd, cl, cm
+    p.history.ϕs[idx, :] = ϕs
+    p.history.cps[idx, :] = cps
+    p.history.acp[idx, :] = [cd, cl, cm]
 end
 
 """
@@ -791,7 +747,7 @@ function profilerun(p::Profile, accfunc, isshow=false; is4thorder=true)
 
 	setγs!(p)
 
-	count::UInt64 = 0
+	count = 0
 	if isshow
 		anim = Animation()
 	end
@@ -809,22 +765,28 @@ function profilerun(p::Profile, accfunc, isshow=false; is4thorder=true)
 		end
 		count += 1
 
-		cd_p, cl_p, cm_p = getcoeffpotential!(p)
-        cd_i, cl_i, cm_i = getcoeffimpulse(p, Int(count-1))
-		Γb = 2p.γg*p.constant_panel.b + sum(map(vp->vp.Γ, p.vortex_points))
-        θ = p.Bs[5]/p.θ0
-        updatehistory!(p.history, count, p.timelapse, [p.pivot_location[1], p.pivot_location[2], p.old_α],
-                       [p.Ut, p.Vt, p.ω], [cd_p, cl_p, cm_p], [p.Bs[2], p.Bs[3], p.Bs[4]],
-                       [cd_i, cl_i, cm_i], getboundpotential(p), p.cps, getimpulse(p), Γb, θ)
+        ##Update history
+        θ = p.β/p.θ0
+		Γb = sum(map(vp->vp.Γ, p.vortex_points))
+		setcoeffpotential!(p, count)
+        setcoeffimpulse!(p, count)
+        setcoeffnoca!(p, count)
+        updatehistory!(p.history, count, p.timelapse,
+                       [p.pivot_location[1], p.pivot_location[2], p.old_α],
+                       [p.Ut, p.Vt, p.ω],  Γb, θ)
 
-		skip=1
 		##Animation
+		skip=1
 		if isshow && count%skip == 0
 			x = map(vp->vp.X, p.vortex_points)
 			y = map(vp->vp.Y, p.vortex_points)
 			Γ = map(vp->vp.Γ, p.vortex_points)
-            traj = plot(p.history.X[:, 1], p.history.X[:, 2], line=(1, :lightgray), aspect_ratio=1, xlim=(-.5-p.T, 1.2), ylim=(-3, 3), framestyle=:none, grid=false, ticks=false, colorbar=false, dpi=400)
-			pp = scatter!(x, y, zcolor=Γ, markercolor=:coolwarm, markersize=3, markerstrokewidth=0, clims=(-.2,.2))
+            traj = plot(p.history.X[:, 1], p.history.X[:, 2],
+                        line=(1, :lightgray), aspect_ratio=1, xlim=(-.5-p.T, 1.2),
+                        ylim=(-3, 3), framestyle=:none, grid=false, ticks=false,
+                        colorbar=false, dpi=400)
+			pp = scatter!(x, y, zcolor=Γ, markercolor=:coolwarm, markersize=3,
+                          markerstrokewidth=0, clims=(-.2,.2))
 			xp = map(panel->panel.X1, p.panels)
 			yp = map(panel->panel.Y1, p.panels)
 			push!(xp, p.panels[end].X2)
