@@ -20,8 +20,6 @@ The plots in this documentation are generated using [Plots.jl](http://docs.julia
 Let's simulate an impulsively started NACA0012 with a 10º pitch angle.
 
 ```@example startingnaca0012
-import Pkg; Pkg.add("Plots")
-using Plots
 using VSFlow
 
 # Simulation parameters
@@ -48,8 +46,7 @@ airfoil = Profile(id = airfoil_ID,
 
 profilerun(airfoil, motion, animate)
 
-# Plotting lift coefficient
-plot(airfoil.history.t, airfoil.history.acn[:, 2])
+println(airfoil.history.acn)
 ```
 
 A history of most useful data in the flow is saved at each time step in a data
