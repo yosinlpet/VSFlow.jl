@@ -1,8 +1,8 @@
 #!/usr/bin/env julia
-# File              : Airfoil.jl
+# File              : src/Airfoil.jl
 # Author            : Denis N Dumoulin <denis.dumoulin@uclouvain.be>
 # Date              : 18.03.2019
-# Last Modified Date: 03.03.2021
+# Last Modified Date: 30.08.2021
 
 """
     gaw1(x)

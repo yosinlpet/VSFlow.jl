@@ -5,6 +5,8 @@
 A heaving and pitching GAW1 airfoil.
 
 ```@example
+ENV["GKSwstype"] = "100"
+using VSFlow
 N = 100
 dt = 2e-2
 T = 13.34
