@@ -13,13 +13,13 @@ T = 13.34
 animate = false
 
 motion_args = (1, 25, 90, 0, .3)
-motion = heavepitch(motion_args)
+motion = heavepitch(motion_args...)
 shape = gaw1
 
 airfoil = Profile(id = "hp-gaw1",
                   profileshape = shape,
-                  x0 = motion(motion_args)(0)[1],
-                  ẋ0 = motion(motion_args)(0)[2],
+                  x0 = motion(motion_args...)(0)[1],
+                  ẋ0 = motion(motion_args...)(0)[2],
                   dt = dt,
                   T = T,
                   N = N)
