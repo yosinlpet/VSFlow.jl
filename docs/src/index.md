@@ -20,6 +20,7 @@ The plots in this documentation are generated using [Plots.jl](http://docs.julia
 Let's simulate an impulsively started NACA0012 with a 10º pitch angle.
 
 ```@example startingnaca0012
+ENV["GKSwstype"] = "100"
 using VSFlow
 
 # Simulation parameters
