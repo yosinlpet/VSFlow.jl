@@ -5,6 +5,7 @@ CurrentModule = VSFlow
 # VSFlow
 
 *An inviscid planar flow model with vortex shedding for external aerodynamics*
+Documentation for [VSFlow](https://github.com/yosinlpet/VSFlow.jl).
 
 ## Installation
 
@@ -45,15 +46,19 @@ airfoil = Profile(id = airfoil_ID,
                     dt = dt,
                     T = T)
 
-profilerun(airfoil, motion, animate)
+# Run the simulation
+simulate(airfoil, motion, animate)
 
 # Show aerodynamic coeffs
 plotaero(airfoil.history)
 ```
 
 A history of most useful data in the flow is saved at each time step in a data
-structure called `history`.
+structure called `history`. These data can be saved to a file or rendered with
+[Plots.jl](http://docs.juliaplots.org/latest/).
+
+The animation is saved as a `.gif` file. Its name contains all simulation
+paramaters.
 
 ![Impulsively started NACA0012](assets/My-naca0012_np100_dt005_T5_dv001_eps001.gif)
 
-Documentation for [VSFlow](https://github.com/yosinlpet/VSFlow.jl).
