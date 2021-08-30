@@ -1,3 +1,8 @@
+#!/usr/bin/env julia
+# File              : docs/make.jl
+# Author            : Denis Dumoulin <denis.dumoulin@uclouvain.be>
+# Date              : 30.08.2021
+# Last Modified Date: 30.08.2021
 using VSFlow
 using Documenter
 
@@ -15,6 +20,7 @@ makedocs(;
     ),
     pages=[
         "Home" => "index.md",
+        "Manual" => "manual.md"
         "Library" => "library.md"
     ],
 )
