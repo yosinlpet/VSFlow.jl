@@ -97,5 +97,5 @@ function plotaero(h::History, save=false, ylim = (-.5, 1))
     plot!(p3, h.t[6:end], h.acp[6:end, 3],
           title = "Cm", label="Cp integration")
 
-    plot(p1, p2, p3, layout = (1, 3))
+    plot(p1, p2, p3, layout = (1, 3), size=(900, 300))
 end
