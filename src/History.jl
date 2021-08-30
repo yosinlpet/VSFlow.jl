@@ -1,3 +1,8 @@
+#!/usr/bin/env julia
+# File              : src/History.jl
+# Author            : Denis Dumoulin <denis.dumoulin@uclouvain.be>
+# Date              : 30.08.2021
+# Last Modified Date: 30.08.2021
 """
     History
 
@@ -71,4 +76,26 @@ function getlastvalues(h::History, sym::Symbol, i, n)
     v = getfield(h, sym)
     i < n &&  return [circshift(v, (-i, 0))[end-n+1:end, :][j, :] for j in n:-1:1]
     return [v[i-n+1:i, :][j, :] for j in n:-1:1]
+end
+
+"""
+    plotaero(h::history, save=false)
+"""
+function plotaero(h::History, save=false, ylim = (-.5, 1))
+    p1 = plot(h.t[6:end], h.acn[6:end, 1])
+    plot!(p1, h.t[6:end], h.aci[6:end, 1])
+    plot!(p1, h.t[6:end], h.acp[6:end, 1],
+          title = "Cd", legend = false)
+
+    p2 = plot(h.t[6:end], h.acn[6:end, 2])
+    plot!(p2, h.t[6:end], h.aci[6:end, 2])
+    plot!(p2, h.t[6:end], h.acp[6:end, 2],
+          title = "Cl", legend = false)
+
+    p3 = plot(h.t[6:end], h.acn[6:end, 3], label="Control volume")
+    plot!(p3, h.t[6:end], h.aci[6:end, 3], label="Impulse conservation")
+    plot!(p3, h.t[6:end], h.acp[6:end, 3],
+          title = "Cm", label="Cp integration")
+
+    plot(p1, p2, p3, layout = (1, 3))
 end

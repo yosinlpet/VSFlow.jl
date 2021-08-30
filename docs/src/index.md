@@ -46,7 +46,8 @@ airfoil = Profile(id = airfoil_ID,
 
 profilerun(airfoil, motion, animate)
 
-println(airfoil.history.acn)
+# Show aerodynamic coeffs
+plotaero(airfoil.history)
 ```
 
 A history of most useful data in the flow is saved at each time step in a data
