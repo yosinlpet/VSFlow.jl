@@ -786,7 +786,7 @@ function profilerun(p::Profile, accfunc, isshow=false; is4thorder=true)
 			x = map(vp->vp.X, p.vortex_points)
 			y = map(vp->vp.Y, p.vortex_points)
 			Γ = map(vp->vp.Γ, p.vortex_points)
-            traj = plot(p.history.X[:, 1], p.history.X[:, 2],
+            traj = plot(p.history.X[1:count, 1], p.history.X[1:count, 2],
                         line=(1, :lightgray), aspect_ratio=1, xlim=(-.5-p.T, 1.2),
                         ylim=(-3, 3), framestyle=:none, grid=false, ticks=false,
                         colorbar=false, dpi=400)

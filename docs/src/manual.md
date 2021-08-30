@@ -8,11 +8,11 @@ A heaving and pitching GAW1 airfoil.
 ENV["GKSwstype"] = "100"
 using VSFlow
 N = 100
-dt = 2e-2
-T = 13.34
+dt = 5e-2
+T = 13.5
 animate = false
 
-motion_args = (1, 25, 90, 0, .3)
+motion_args = (.5, 15, 90, 0, .3)
 motion = heavepitch(motion_args...)
 shape = gaw1
 
