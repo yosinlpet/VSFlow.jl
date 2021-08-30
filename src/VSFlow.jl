@@ -1,5 +1,5 @@
 #!/usr/bin/env julia
-# File              : src/VSFlow.jl
+# File              : VSFlow.jl
 # Author            : Denis Dumoulin <denis.dumoulin@uclouvain.be>
 # Date              : 30.08.2021
 # Last Modified Date: 30.08.2021
@@ -18,8 +18,6 @@ export uniform, heavepitch, circularmotion
 export naca00, gaw1, circle, ellipse
 export Profile, profilerun
 export History, getimpulse, getboundpotential, plotaero
-
-const EPS = eps()
 
 """
 PROFILE object
@@ -756,7 +754,7 @@ function profilerun(p::Profile, accfunc, isshow=false; is4thorder=true)
 	if isshow
 		anim = Animation()
 	end
-	while(p.timelapse <= p.T + p.dt)
+    while(count <= 1 + Int(p.T/p.dt))
 		if count%10 == 0
 			@info @sprintf "%.3f/%.3f" p.timelapse p.T
 		end
