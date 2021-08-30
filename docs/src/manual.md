@@ -1,12 +1,12 @@
 # User Guide
 
 ## Time marching
-The default numerical scheme used for time marching is the standard
-[Runge-Kutta](https://en.wikipedia.org/wiki/Runge–Kutta_methods) (RK) method
-up to the 4th order.
+The default numerical scheme used for time marching is the standard 4th order
+[Runge-Kutta](https://en.wikipedia.org/wiki/Runge–Kutta_methods) (RK4) method.
 
-The order can be adapted when running the simulation using
-`profilerun((args)...; simorder=4, kwargs...)`.
+The order can be reduced to `1` when running the simulation using
+`profilerun((args)...; is4thorder=false, kwargs...)`.
+Note that the RK1 is the same as the Forward Euler scheme.
 
 ## Time derivatives
 The default numerical scheme used for time derivatives is the standard
@@ -18,6 +18,7 @@ The order can be adapted when running the simulation using
 
 ## Custom shape
 Any airfoil with a wedge angle can be used.
+The template is the following:
 ```
 my_shape(varargs...) = x -> begin
     top = my_f(x, varargs...)
@@ -31,20 +32,15 @@ The shape function has to be zero at `x=0` and `x=1`.
 The trailing edge is placed at `x=1`.
 
 ## Custom body motion
-The body motion has to match the structure of the following template:
-```
-my_motion(varargs...) = t -> begin
-    x = my_position_vector(t, varargs...) #x = [-X, Y, \alpha]
-    v = my_velocity_vector(t, varargs...)
-    a = my_acceleration_vector(t, varargs...)
-return [x, v, a]
-end
-```
+Any acceleration `a(t) = [X\ddot, Y\ddot, \alpha\ddot]` function does the trick.
 
 # Examples
 
 ## A heaving and pitching airfoil
 A heaving and pitching NACA0013 airfoil.
+The heaving motion has an amplitude of 1, the pitching motion has an amplitued
+of 25º, the Strouhal number is .3 and the
+phase shift between heaving and pitching is 90º.
 
 ```@example
 ENV["GKSwstype"] = "100"

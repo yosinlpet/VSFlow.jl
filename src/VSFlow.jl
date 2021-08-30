@@ -1,5 +1,5 @@
 #!/usr/bin/env julia
-# File              : VSFlow.jl
+# File              : src/VSFlow.jl
 # Author            : Denis Dumoulin <denis.dumoulin@uclouvain.be>
 # Date              : 30.08.2021
 # Last Modified Date: 30.08.2021
@@ -644,14 +644,14 @@ end
 
 
 """
-    setcoeffimpulse!(p::Profile, idx)
+    setcoeffimpulse!(p::Profile, idx, bdorder)
 
 Set aerodynamic coefficients computed with impulse conservation in the flow.
 """
-function setcoeffimpulse!(p::Profile, idx)
+function setcoeffimpulse!(p::Profile, idx, bdorder)
 	X0, Y0 = p.history.X[1, 1], p.history.X[1, 2]
 	xyz_imp = getimpulse(p::Profile)
-    oldimpulse = getlastvalues(p.history, :P, idx-1, 4)
+    oldimpulse = getlastvalues(p.history, :P, idx-1, bdorder)
 
 	cd, cl, cm = -2backwarddifference(xyz_imp, oldimpulse, p.dt)
 	cm -= dot(p.pivot_location - [X0, Y0], [cl, -cd])
@@ -661,16 +661,16 @@ function setcoeffimpulse!(p::Profile, idx)
 end
 
 """
-    setcoeffnoca!(p::Profile, idx)
+    setcoeffnoca!(p::Profile, idx, bdorder)
 
 Set aerodynamic coefficients computed with a control volume approach.
 """
-function setcoeffnoca!(p::Profile, idx)
+function setcoeffnoca!(p::Profile, idx, bdorder)
 	X0, Y0 = p.history.X[1, 1], p.history.X[1, 2]
     Xp, Yp = p.pivot_location
 
 	panels_impulse = sum(map((pa, γL, γR)->getimpulse(pa, γL, γR, p.ω, p.Ut, p.Vt, Xp, Yp, Xp, Yp, true), p.panels, p.γs[1:end-1], p.γs[2:end]))
-    oldnocaimpulse = getlastvalues(p.history, :NP, idx-1, 4)
+    oldnocaimpulse = getlastvalues(p.history, :NP, idx-1, bdorder)
 
 	u = 2p.old_panel.b/p.dt
 	energyflux = sum(map((pa, γL, γR)->getenergyflux(pa, γL, γR, p.ω, 0, 0, Xp, Yp, Xp, Yp), p.panels, p.γs[1:end-1], p.γs[2:end]))
@@ -701,13 +701,13 @@ function getboundpotential(p::Profile)
 end
 
 """
-    setcoeffpotential!(p::Profile, idx)
+    setcoeffpotential!(p::Profile, idx, bdorder)
 
 Set aerodynamic coefficients using pressure integration.
 """
-function setcoeffpotential!(p::Profile, idx)
+function setcoeffpotential!(p::Profile, idx, bdorder)
 	ϕs = getboundpotential(p)
-    oldϕs = getlastvalues(p.history, :ϕs, idx-1, 4)
+    oldϕs = getlastvalues(p.history, :ϕs, idx-1, bdorder)
 
 	X0, Y0 = p.pivot_location
 	Us = map(pa->p.Ut - p.ω*(pa.Y1 - Y0), p.panels)
@@ -724,19 +724,21 @@ function setcoeffpotential!(p::Profile, idx)
 end
 
 """
-    profilerun(p::Profile, accfunc, isshow=false; is4thorder=true)
+    profilerun(p::Profile, accfunc; isshow=false, is4thorder=true, bdorder=4)
 
 Simulate the testcase.
 
 # Arguments
  - `p`: `Profile` simulation to run.
  - `accfunc`: `Function` giving the force applied on the pivot point of the body.
- - `isshow = false`: `Bool` indicating whether an animation has to be generated.
 
 # Keyword Arguments
- - `is4thorder = true`: `Bool` indicating if the time marching is RK4 or ForwardEuler.
+ - `isshow = false`: `Bool` indicating whether an animation has to be generated.
+ - `is4thorder = true`: `Bool` indicating if the order of the Runge-Kutta integrator is 4.
+                        If `false`, then a Forward Euler method is used.
+ - `bdorder = 4`: Order of the backward difference schemes for time derivatives.
 """
-function profilerun(p::Profile, accfunc, isshow=false; is4thorder=true)
+function profilerun(p::Profile, accfunc; isshow=false, is4thorder=true, bdorder=4)
 	run(`echo "==================================================================="`)
 	run(pipeline(`git log`, `head -6`))
 	run(`echo "==================================================================="`)
@@ -771,9 +773,9 @@ function profilerun(p::Profile, accfunc, isshow=false; is4thorder=true)
         ##Update history
         θ = p.β/p.θ0
 		Γb = sum(map(vp->vp.Γ, p.vortex_points))
-		setcoeffpotential!(p, count)
-        setcoeffimpulse!(p, count)
-        setcoeffnoca!(p, count)
+		setcoeffpotential!(p, count, bdorder)
+        setcoeffimpulse!(p, count, bdorder)
+        setcoeffnoca!(p, count, bdorder)
         updatehistory!(p.history, count, p.timelapse,
                        [p.pivot_location[1], p.pivot_location[2], p.old_α],
                        [p.Ut, p.Vt, p.ω],  Γb, θ)
