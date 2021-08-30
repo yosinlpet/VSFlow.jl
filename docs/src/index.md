@@ -28,7 +28,6 @@ using VSFlow
 N = 100          # number of vortex panels on the body surface
 T = 5            # horizon time
 dt = 5e-2        # time step
-animate = true   # generate animation
 
 # Body geometry and motion
 airfoil_ID = "My-naca0012"
@@ -46,8 +45,8 @@ airfoil = Profile(id = airfoil_ID,
                     dt = dt,
                     T = T)
 
-# Run the simulation
-simulate(airfoil, motion, animate)
+# Run the simulation, generating an animation
+simulate(airfoil, motion, animate=true)
 
 # Show aerodynamic coeffs
 plotaero(airfoil.history)

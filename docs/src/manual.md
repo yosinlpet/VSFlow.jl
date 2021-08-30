@@ -3,7 +3,6 @@
 ## Time marching
 The default numerical scheme used for time marching is the standard 4th order
 [Runge-Kutta](https://en.wikipedia.org/wiki/Runge–Kutta_methods) (RK4) method.
-
 The order can be reduced to `1` when running the simulation using
 `profilerun((args)...; is4thorder=false, kwargs...)`.
 Note that the RK1 is the same as the Forward Euler scheme.
@@ -48,7 +47,6 @@ using VSFlow
 N = 100
 dt = 5e-2
 T = 13.5
-animate = false
 
 motion_args = (1, 25, 90, 0, .3)
 motion = heavepitch(motion_args...)
@@ -61,7 +59,7 @@ airfoil = Profile(id = "hp-naca0013",
                   dt = dt,
                   T = T,
                   N = N)
-profilerun(airfoil, motion, animate)
+profilerun(airfoil, motion)
 
 plotaero(airfoil.history)
 ```

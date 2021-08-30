@@ -724,7 +724,7 @@ function setcoeffpotential!(p::Profile, idx, bdorder)
 end
 
 """
-    profilerun(p::Profile, accfunc; isshow=false, is4thorder=true, bdorder=4)
+    profilerun(p::Profile, accfunc; animate=false, is4thorder=true, bdorder=4)
 
 Simulate the testcase.
 
@@ -733,12 +733,12 @@ Simulate the testcase.
  - `accfunc`: `Function` giving the force applied on the pivot point of the body.
 
 # Keyword Arguments
- - `isshow = false`: `Bool` indicating whether an animation has to be generated.
+ - `animate = false`: `Bool` indicating whether an animation has to be generated.
  - `is4thorder = true`: `Bool` indicating if the order of the Runge-Kutta integrator is 4.
                         If `false`, then a Forward Euler method is used.
  - `bdorder = 4`: Order of the backward difference schemes for time derivatives.
 """
-function profilerun(p::Profile, accfunc; isshow=false, is4thorder=true, bdorder=4)
+function profilerun(p::Profile, accfunc; animate=false, is4thorder=true, bdorder=4)
 	run(`echo "==================================================================="`)
 	run(pipeline(`git log`, `head -6`))
 	run(`echo "==================================================================="`)
@@ -753,7 +753,7 @@ function profilerun(p::Profile, accfunc; isshow=false, is4thorder=true, bdorder=
 	setγs!(p)
 
 	count = 0
-	if isshow
+	if animate
 		anim = Animation()
 	end
     while(count <= 1 + Int(p.T/p.dt))
@@ -782,7 +782,7 @@ function profilerun(p::Profile, accfunc; isshow=false, is4thorder=true, bdorder=
 
 		##Animation
 		skip=1
-		if isshow && count%skip == 0
+		if animate && count%skip == 0
 			x = map(vp->vp.X, p.vortex_points)
 			y = map(vp->vp.Y, p.vortex_points)
 			Γ = map(vp->vp.Γ, p.vortex_points)
@@ -802,7 +802,7 @@ function profilerun(p::Profile, accfunc; isshow=false, is4thorder=true, bdorder=
 		end
 	end
 
-	if isshow
+	if animate
 		gif(anim, p.fname*".gif", fps=20)
         println("Animation saved!")
 	end
