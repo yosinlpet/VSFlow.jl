@@ -8,7 +8,7 @@ module VSFlow
 using LinearAlgebra
 using Printf
 using Logging
-using Plots
+using Plots; gr()
 
 include("VortexElement.jl")
 include("Airfoil.jl")
