@@ -2,7 +2,7 @@
 
 # Example
 
-A heaving and pitching GAW1 airfoil.
+A heaving and pitching NACA0013 airfoil.
 
 ```@example
 ENV["GKSwstype"] = "100"
@@ -12,11 +12,11 @@ dt = 5e-2
 T = 13.5
 animate = false
 
-motion_args = (.5, 15, 90, 0, .3)
+motion_args = (1, 25, 90, 0, .3)
 motion = heavepitch(motion_args...)
-shape = gaw1
+shape = naca00(13)
 
-airfoil = Profile(id = "hp-gaw1",
+airfoil = Profile(id = "hp-naca0013",
                   profileshape = shape,
                   x0 = motion(0)[1],
                   ẋ0 = motion(0)[2],
