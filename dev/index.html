@@ -6,7 +6,6 @@ using VSFlow
 N = 100          # number of vortex panels on the body surface
 T = 5            # horizon time
 dt = 5e-2        # time step
-animate = true   # generate animation
 
 # Body geometry and motion
 airfoil_ID = &quot;My-naca0012&quot;
@@ -24,8 +23,8 @@ airfoil = Profile(id = airfoil_ID,
                     dt = dt,
                     T = T)
 
-# Run the simulation
-simulate(airfoil, motion, animate)
+# Run the simulation, generating an animation
+simulate(airfoil, motion, animate=true)
 
 # Show aerodynamic coeffs
-plotaero(airfoil.history)</code></pre><p>A history of most useful data in the flow is saved at each time step in a data structure called <code>history</code>. These data can be saved to a file or rendered with <a href="http://docs.juliaplots.org/latest/">Plots.jl</a>.</p><p>The animation is saved as a <code>.gif</code> file. Its name contains all simulation paramaters.</p><p><img src="assets/My-naca0012_np100_dt005_T5_dv001_eps001.gif" alt="Impulsively started NACA0012"/></p></article><nav class="docs-footer"><a class="docs-footer-nextpage" href="manual/">Manual »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.5 on <span class="colophon-date" title="Monday 30 August 2021 13:07">Monday 30 August 2021</span>. Using Julia version 1.6.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+plotaero(airfoil.history)</code></pre><p>A history of most useful data in the flow is saved at each time step in a data structure called <code>history</code>. These data can be saved to a file or rendered with <a href="http://docs.juliaplots.org/latest/">Plots.jl</a>.</p><p>The animation is saved as a <code>.gif</code> file. Its name contains all simulation paramaters.</p><p><img src="assets/My-naca0012_np100_dt005_T5_dv001_eps001.gif" alt="Impulsively started NACA0012"/></p></article><nav class="docs-footer"><a class="docs-footer-nextpage" href="manual/">Manual »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.5 on <span class="colophon-date" title="Monday 30 August 2021 13:37">Monday 30 August 2021</span>. Using Julia version 1.6.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
