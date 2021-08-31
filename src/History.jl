@@ -1,5 +1,5 @@
 #!/usr/bin/env julia
-# File              : src/History.jl
+# File              : .julia/dev/VSFlow/src/History.jl
 # Author            : Denis Dumoulin <denis.dumoulin@uclouvain.be>
 # Date              : 30.08.2021
 # Last Modified Date: 31.08.2021
@@ -115,7 +115,7 @@ function plotcps(h::History, t, save=false)
     idx = findfirst(x -> x≥t, h.t)
     N = 1 + div(size(h.cps, 2) - 1, 2)
     p1 = plot(h.cps[idx, N:-1:1], label="Suction Side", size=(600,600))
-    plot!(p1, h.cps[idx, N:end], label="Pressure Side")
+    plot!(p1, h.cps[idx, N:end], label="Pressure Side", legend=:topleft)
 
     save && savefig("cps.png")
     return p1
@@ -128,7 +128,7 @@ function plotϕs(h::History, t, save=false)
     idx = findfirst(x -> x≥t, h.t)
     N = 1 + div(size(h.ϕs, 2) - 1, 2)
     p1 = plot(h.ϕs[idx, N:-1:1], label="Suction Side", size=(600,600))
-    plot!(p1, h.ϕs[idx, N:end], label="Pressure Side")
+    plot!(p1, h.ϕs[idx, N:end], label="Pressure Side", legend=:topleft)
 
     save && savefig("phis.png")
     return p1
