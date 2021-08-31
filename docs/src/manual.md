@@ -60,7 +60,7 @@ airfoil = Profile(id = "hp-naca0013",
                   N = N)
 profilerun(airfoil, motion)
 
-plotaero(airfoil.history)
-plotcps(airfoil.history, 12.)
-plotϕs(airfoil.history, 12.)
+[plotaero(airfoil.history),
+plotcps(airfoil.history, 12.),
+plotϕs(airfoil.history, 12.)]
 ```
