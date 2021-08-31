@@ -46,7 +46,7 @@ airfoil = Profile(id = airfoil_ID,
                     T = T)
 
 # Run the simulation, generating an animation
-simulate(airfoil, motion, animate=true)
+profilerun(airfoil, motion, animate=true)
 
 # Show aerodynamic coeffs
 plotaero(airfoil.history)
