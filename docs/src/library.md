@@ -31,6 +31,9 @@ profilerun
 History
 getimpulse(p::Profile)
 getboundpotential
+plotaero
+plotcps
+plotϕs
 ```
 
 # Private API

@@ -2,7 +2,7 @@
 # File              : src/History.jl
 # Author            : Denis Dumoulin <denis.dumoulin@uclouvain.be>
 # Date              : 30.08.2021
-# Last Modified Date: 30.08.2021
+# Last Modified Date: 31.08.2021
 """
     History
 
@@ -80,8 +80,14 @@ end
 
 """
     plotaero(h::history, save=false)
+
+Plot the aerodynamic coefficients obtained with all methods.
+
+# Arguments
+ - `h`: the `History` to read from.
+ - `save=true`: whether to save the plots as a .png image.
 """
-function plotaero(h::History, save=false, ylim = (-.5, 1))
+function plotaero(h::History, save=false)
     p1 = plot(h.t[6:end], h.acn[6:end, 1])
     plot!(p1, h.t[6:end], h.aci[6:end, 1])
     plot!(p1, h.t[6:end], h.acp[6:end, 1],
@@ -97,5 +103,33 @@ function plotaero(h::History, save=false, ylim = (-.5, 1))
     plot!(p3, h.t[6:end], h.acp[6:end, 3],
           title = "Cm", label="Cp integration")
 
-    plot(p1, p2, p3, layout = (1, 3), size=(900, 300))
+    p = plot(p1, p2, p3, layout = (1, 3), size=(900, 300))
+    save && savefig("aero.png")
+    return p
+end
+
+"""
+    plotcps(h::History, save=false)
+"""
+function plotcps(h::History, t, save=false)
+    idx = findfirst(x -> x≥t, h.t)
+    N = 1 + div(size(h.cps, 2) - 1, 2)
+    p1 = plot(h.cps[idx, N:-1:1], label="Suction Side", size=(600,600))
+    plot!(p1, h.cps[idx, N:end], label="Pressure Side")
+
+    save && savefig("cps.png")
+    return p1
+end
+
+"""
+    plotϕs(h::History, t, save=false)
+"""
+function plotϕs(h::History, t, save=false)
+    idx = findfirst(x -> x≥t, h.t)
+    N = 1 + div(size(h.ϕs, 2) - 1, 2)
+    p1 = plot(h.ϕs[idx, N:-1:1], label="Suction Side", size=(600,600))
+    plot!(p1, h.ϕs[idx, N:end], label="Pressure Side")
+
+    save && savefig("phis.png")
+    return p1
 end

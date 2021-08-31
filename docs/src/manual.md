@@ -11,7 +11,6 @@ Note that the RK1 is the same as the Forward Euler scheme.
 The default numerical scheme used for time derivatives is the standard
 [backward difference](https://en.wikipedia.org/wiki/Finite_difference_coefficient#Backward_finite_difference)
 method up to the 4th order.
-
 The order can be adapted when running the simulation using
 `profilerun((args)...; bdorder=4, kwargs...)`.
 
@@ -31,7 +30,7 @@ The shape function has to be zero at `x=0` and `x=1`.
 The trailing edge is placed at `x=1`.
 
 ## Custom body motion
-Any acceleration `a(t) = [X\ddot, Y\ddot, \alpha\ddot]` function does the trick.
+Any acceleration `a(t) = [Ẍ, Ÿ, α̈]` function does the trick.
 
 # Examples
 
@@ -62,4 +61,6 @@ airfoil = Profile(id = "hp-naca0013",
 profilerun(airfoil, motion)
 
 plotaero(airfoil.history)
+plotcps(airfoil.history, 12.)
+plotϕs(airfoil.history, 12.)
 ```

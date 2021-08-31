@@ -2,7 +2,7 @@
 # File              : src/VSFlow.jl
 # Author            : Denis Dumoulin <denis.dumoulin@uclouvain.be>
 # Date              : 30.08.2021
-# Last Modified Date: 30.08.2021
+# Last Modified Date: 31.08.2021
 module VSFlow
 
 using LinearAlgebra
@@ -17,7 +17,7 @@ include("History.jl")
 export uniform, heavepitch, circularmotion
 export naca00, gaw1, circle, ellipse
 export Profile, profilerun
-export History, getimpulse, getboundpotential, plotaero
+export History, getimpulse, getboundpotential, plotaero, plotcps, plotϕs
 
 """
 PROFILE object
