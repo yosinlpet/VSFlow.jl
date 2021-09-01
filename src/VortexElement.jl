@@ -1,5 +1,5 @@
 #!/usr/bin/env julia
-# File              : VortexElement.jl
+# File              : /Users/dedumoulin/.julia/dev/VSFlow/src/VortexElement.jl
 # Author            : Denis N Dumoulin <denis.dumoulin@uclouvain.be>
 # Date              : 13.03.2019
 # Last Modified Date: 01.09.2021
@@ -39,7 +39,7 @@ Return the velocity at point `X`, `Y` induced by a vortex point located at `vpX`
 """
 function blobkernel(X, Y, vpX, vpY, δ, isgaussian)
 	## Low order algebraic i.e. Blob
-	!isgaussian && coeff = pi2_inv/norm2(X - vpX, Y - vpY, δ)
+    !isgaussian && (coeff = pi2_inv/norm2(X - vpX, Y - vpY, δ))
 
     ## Gaussian regularization kernel
     isgaussian && begin
