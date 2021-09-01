@@ -1,8 +1,8 @@
 #!/usr/bin/env julia
-# File              : .julia/dev/VSFlow/src/History.jl
+# File              : History.jl
 # Author            : Denis Dumoulin <denis.dumoulin@uclouvain.be>
 # Date              : 30.08.2021
-# Last Modified Date: 31.08.2021
+# Last Modified Date: 01.09.2021
 """
     History
 
@@ -85,7 +85,7 @@ Plot the aerodynamic coefficients obtained with all methods.
 
 # Arguments
  - `h`: the `History` to read from.
- - `save=true`: whether to save the plots as a .png image.
+ - `save=false`: whether to save the plots as a .png image.
 """
 function plotaero(h::History, save=false)
     p1 = plot(h.t[6:end], h.acn[6:end, 1])
@@ -109,7 +109,14 @@ function plotaero(h::History, save=false)
 end
 
 """
-    plotcps(h::History, save=false)
+    plotcps(h::History, t, save=false)
+
+Plot the pressure coefficients at time `t`.
+
+# Arguments
+ - `h`: the `History` to read from.
+ - `t`: time at which to evaluate cps.
+ - `save=false`: whether to save the plots as a .png image.
 """
 function plotcps(h::History, t, save=false)
     idx = findfirst(x -> x≥t, h.t)
@@ -123,6 +130,13 @@ end
 
 """
     plotϕs(h::History, t, save=false)
+
+Plot the velocity potential distribution at time `t`.
+
+# Arguments
+ - `h`: the `History` to read from.
+ - `t`: time at which to evaluate ϕs.
+ - `save=false`: whether to save the plots as a .png image.
 """
 function plotϕs(h::History, t, save=false)
     idx = findfirst(x -> x≥t, h.t)
