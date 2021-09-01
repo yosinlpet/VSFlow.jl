@@ -5,6 +5,7 @@ CurrentModule = VSFlow
 # VSFlow
 
 *An inviscid planar flow model with vortex shedding for external aerodynamics*
+
 Documentation for [VSFlow](https://github.com/yosinlpet/VSFlow.jl).
 
 ## Installation

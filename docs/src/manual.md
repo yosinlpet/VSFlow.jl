@@ -35,7 +35,10 @@ end
 By default, `my_shape(varargs...)(0:dx:1)` is called at the airfoil
 initialization. `dx` is computed to match the number of panels `N`.
 The shape functions `my_f` and `my_g` must follow belong to the class of
-function ``f: [0, 1] \\to \\mathbb{R}, x \\mapsto f(x), f(0) = f(1) = 0``
+function
+```math
+f: [0, 1] \to \mathbb{R}, x \mapsto f(x),\quadd f(0) = f(1) = 0.
+```
 The trailing edge is placed at `x=1`.
 
 ## Custom body motion
