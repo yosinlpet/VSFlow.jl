@@ -62,11 +62,11 @@ function getinducedvelocity(vp::VortexPoint, X, Y, δ, isgaussian)
 end
 
 """
-    getcloudvelocities(vortex_points, δ)
+    getcloudvelocities(vortex_points, δ, isgaussian)
 
 Return the velocity induced by all other vortices in the cloud.
 """
-function getcloudvelocities(vortex_points, δ)
+function getcloudvelocities(vortex_points, δ, isgaussian)
 	Nv = length(vortex_points)
 	U = zeros(Nv, Nv)
 	V = zeros(Nv, Nv)
