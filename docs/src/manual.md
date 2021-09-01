@@ -43,8 +43,11 @@ f: [0, 1] \to \mathbb{R},\quad f(0) = f(1) = 0.
 
 The trailing edge is placed at `x=1`.
 
-## Custom body motion
-Any acceleration `a(t) = [Ẍ, Ÿ, α̈](t)` function does the trick.
+## Airfoil discretization
+The panel distribution is based on the flat projection of uniformly
+spaced points on the unit circle centered at `x=0.5`.
+Therefore, panels closest to both edges of the airfoil are smaller than panels
+in the middle of the airfoil where its surface has a larger curvature radius.
 
 # Examples
 
