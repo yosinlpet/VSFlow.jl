@@ -38,7 +38,7 @@ The shape functions `my_f` and `my_g` must follow belong to the class of
 function
 
 ```math
-f: [0, 1] \to \mathbb{R}, x \mapsto f(x),\quadd f(0) = f(1) = 0.
+f: [0, 1] \to \mathbb{R},\quad f(0) = f(1) = 0.
 ```
 
 The trailing edge is placed at `x=1`.
