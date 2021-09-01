@@ -14,6 +14,14 @@ method up to the 4th order.
 The order can be adapted when running the simulation using
 `profilerun((args)...; bdorder=4, kwargs...)`.
 
+## Vortex Kernel
+By default, the flow model uses a [Low-Algebraic]() vortex regularization kernel
+with cut-off width of `1e-2`.
+Nonetheless, the user can use a [Gaussian]() kernel if they so desire.
+These two parameters can be specified in the `Profile` declaration.
+`Profile(isgaussian=false, δ=1e-2, kwargs...)`.
+
+
 ## Custom shape
 Any airfoil with a wedge angle can be used.
 The template is the following:
