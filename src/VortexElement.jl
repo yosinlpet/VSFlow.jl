@@ -2,7 +2,7 @@
 # File              : VortexElement.jl
 # Author            : Denis N Dumoulin <denis.dumoulin@uclouvain.be>
 # Date              : 13.03.2019
-# Last Modified Date: 04.03.2021
+# Last Modified Date: 01.09.2021
 include("Utils.jl")
 
 const pi2_inv = .5/pi
@@ -33,19 +33,22 @@ end
 VortexPoint(X, Y, Γ) = VortexPoint(X, Y, Γ, [0., 0.])
 
 """
-    blobkernel(X, Y, vpX, vpY, δ)
+    blobkernel(X, Y, vpX, vpY, δ, isgaussian)
 
 Return the velocity at point `X`, `Y` induced by a vortex point located at `vpX`,`vpY`.
 """
-function blobkernel(X, Y, vpX, vpY, δ)
-	## Gaussian regularization kernel
-	x2 = norm2(X - vpX, Y - vpY)
-    abs(x2) < 1e-12 && return zeros(2)
-	coeff = pi2_inv*(1-exp(-x2/δ^2))/x2
-
+function blobkernel(X, Y, vpX, vpY, δ, isgaussian)
 	## Low order algebraic i.e. Blob
-	#= coeff = pi2_inv/norm2(X - vpX, Y - vpY, δ) =#
-	return [(vpY - Y)coeff, (X - vpX)coeff]
+	!isgaussian && coeff = pi2_inv/norm2(X - vpX, Y - vpY, δ)
+
+    ## Gaussian regularization kernel
+    isgaussian && begin
+        x2 = norm2(X - vpX, Y - vpY)
+        abs(x2) < 1e-12 && return zeros(2)
+        coeff = pi2_inv*(1-exp(-x2/δ^2))/x2
+    end
+
+	return [(vpY - Y), (X - vpX)] .* coeff
 
 end
 
@@ -54,8 +57,8 @@ end
 
 Return the velocity intuced by vortex `vp` at location `X`, `Y`.
 """
-function getinducedvelocity(vp::VortexPoint, X, Y, δ)
-	return vp.Γ*blobkernel(X, Y, vp.X, vp.Y, δ)
+function getinducedvelocity(vp::VortexPoint, X, Y, δ, isgaussian)
+	return vp.Γ*blobkernel(X, Y, vp.X, vp.Y, δ, isgaussian)
 end
 
 """
@@ -71,7 +74,7 @@ function getcloudvelocities(vortex_points, δ)
 		@inbounds vi = vortex_points[i]
 		@inbounds for j = i+1:Nv
 			@inbounds vj = vortex_points[j]
-	 		@inbounds U[i, j], V[i, j] = blobkernel(vi.X, vi.Y, vj.X, vj.Y, δ)
+	 		@inbounds U[i, j], V[i, j] = blobkernel(vi.X, vi.Y, vj.X, vj.Y, δ, isgaussian)
 			@inbounds U[j, i], V[j, i] = -U[i, j], -V[i, j]
 		end
 	end

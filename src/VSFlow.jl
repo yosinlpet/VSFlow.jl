@@ -1,8 +1,8 @@
 #!/usr/bin/env julia
-# File              : src/VSFlow.jl
+# File              : VSFlow.jl
 # Author            : Denis Dumoulin <denis.dumoulin@uclouvain.be>
 # Date              : 30.08.2021
-# Last Modified Date: 31.08.2021
+# Last Modified Date: 01.09.2021
 module VSFlow
 
 using LinearAlgebra
@@ -65,6 +65,7 @@ mutable struct Profile
     islumped::Bool
 	profID::String
     history::History
+    isgaussian::Bool
 end
 
 """
@@ -81,6 +82,7 @@ If `eta`, `Tmin`, `Smin` are all `0`, then no lumping operation occurs.
  - `ẋ0`: initial velocity `[Ẋ0, Ẏ0, α̇0]` of the quarter chord of the profile.
  - `dt`: timestep of the simulation.
  - `T`: horizon time.
+ - `isgaussian`: `` determining if the vortex kernel is Gaussian or Low-order Algebraic.
  - `δ = 1e-2`: kernel cut-off width.
  - `ϵ = 1e-2`: percentage of the average panel length to chop the trailing edge.
  - `η = 0`: maximum error due to lumping.
@@ -89,6 +91,7 @@ If `eta`, `Tmin`, `Smin` are all `0`, then no lumping operation occurs.
 
 """
 function Profile(; id, profileshape::Function, x0, ẋ0, N, dt, T,
+                    isgaussian = false,
                     δ = 1e-2,
                     ϵ = 1e-2,
                     lumpargs = zeros(3))
@@ -136,7 +139,7 @@ function Profile(; id, profileshape::Function, x0, ẋ0, N, dt, T,
 				   -α̇0, γs, 0, 0, average_length, dt, T, δ, ϵ, 0,
 				   true, θg, θ0, 0, θ1, θ2, constant_panel, pivot_location, U0, V0,
 				   zeros(3), trailing, fname, zeros(N+2, N+2),
-				   η, 0, Tmin, zeros(2), sheet_size, 1, islumped, id, h)
+				   η, 0, Tmin, zeros(2), sheet_size, 1, islumped, id, h, isgaussian)
 end
 
 function copier!(p::Profile, p2::Profile)
@@ -180,6 +183,7 @@ function copier!(p::Profile, p2::Profile)
     p.islumped = p2.islumped
 	p.profID = p2.profID
 	p.history = p2.history
+	p.isgaussian = p2.isgaussian
 	return nothing
 end
 
@@ -303,7 +307,8 @@ Return the velocity at point `XY`.
 function globalvelocity(p::Profile, XY, incloud=false)
 	UV = getboundpanelsinducedvel(p, XY[1], XY[2])
 	UV += p.γg*getparamsinrefframe(p.constant_panel, XY[1], XY[2])
-	!incloud && !isempty(p.vortex_points) && (UV += sum(map(vp->getinducedvelocity(vp, XY[1], XY[2], p.δ), p.vortex_points)))
+	!incloud && !isempty(p.vortex_points) &&
+        (UV += sum(map(vp->getinducedvelocity(vp, XY[1], XY[2], p.δ, p.isgaussian), p.vortex_points)))
 	return UV
 end
 
@@ -396,8 +401,8 @@ function step!(p::Profile, is4thorder=true, need_reset=true)
 			placeconstantpanel!(p, XPL...)
 			setγs!(p)
 		end
-		#= dXY = p.dt*map(x->globalvelocity(p, x), XYL) =#
-		dXY = p.dt*(getcloudvelocities(p.vortex_points, p.δ) .+ map(x->globalvelocity(p, x, true), XYL))
+		dXY = p.dt*(getcloudvelocities(p.vortex_points, p.δ, p.isgaussian) .+
+                        map(x->globalvelocity(p, x, true), XYL))
 
 		!isempty(p.vortex_points) && (dXY[p.last_vp_ind] += p.vortex_points[p.last_vp_ind].dv*p.dt)
 		dXP = p.dt*gettrailingedgevel!(p)
@@ -533,7 +538,7 @@ Return the impulse linked with vortex `vp` and its image on the body.
 function getvorteximpulse(p::Profile, vp)
 	b = zeros(p.N + 1)
 	for (m, panel) in enumerate(p.panels)
-		U, V = getinducedvelocity(vp, panel.Xc, panel.Yc, p.δ)
+		U, V = getinducedvelocity(vp, panel.Xc, panel.Yc, p.δ, p.isgaussian)
 		_, V = rotate(U, V, π+panel.θ)
 		@inbounds b[m] = -V
 	end
@@ -574,7 +579,7 @@ function setγs!(p::Profile)
 
 		V = - .5rotate(p.Ut - p.ω*(panel.Yc-Y0), p.Vt + p.ω*(panel.Xc-X0), π+panel.θ)[2]
 		for vp in p.vortex_points
-			Up, Vp = getinducedvelocity(vp, panel.Xc, panel.Yc, p.δ)
+			Up, Vp = getinducedvelocity(vp, panel.Xc, panel.Yc, p.δ, p.isgaussian)
 			Up, Vp = rotate(Up, Vp, π+panel.θ)
 			V += Vp
 		end
