@@ -2,7 +2,7 @@
 # File              : VSFlow.jl
 # Author            : Denis Dumoulin <denis.dumoulin@uclouvain.be>
 # Date              : 30.08.2021
-# Last Modified Date: 01.09.2021
+# Last Modified Date: 17.09.2021
 module VSFlow
 
 using LinearAlgebra
@@ -275,11 +275,11 @@ function getboundpanelsinducedvel(p::Profile, X, Y)
 end
 
 """
-    motionupdate!(p::Profile, X, Ẋ, t)
+    motionupdate!(p::Profile, X, Ẋ)
 
 Update the position, AoA and velocities of the body.
 """
-function motionupdate!(p::Profile, X, Ẋ, t)
+function motionupdate!(p::Profile, X, Ẋ)
 	X0, Y0 = p.pivot_location
 	Xt, Yt, θ = X
 	α = -θ
@@ -397,7 +397,7 @@ function step!(p::Profile, is4thorder=true, need_reset=true)
 				@inbounds vp.X = XYL[i][1]
 				@inbounds vp.Y = XYL[i][2]
 			end
-			@inbounds motionupdate!(p, XAL, ẊAL, β[k]*p.dt)
+			@inbounds motionupdate!(p, XAL, ẊAL)
 			placeconstantpanel!(p, XPL...)
 			setγs!(p)
 		end
@@ -418,7 +418,7 @@ function step!(p::Profile, is4thorder=true, need_reset=true)
 		@inbounds vp.X = XY[i][1]
 		@inbounds vp.Y = XY[i][2]
 	end
-	motionupdate!(p, XA, ẊA, p.dt)
+	motionupdate!(p, XA, ẊA)
 	placeconstantpanel!(p, XP...)
 	setγs!(p)
 	gettrailingedgevel!(p)
