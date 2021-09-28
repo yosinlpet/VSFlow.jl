@@ -68,5 +68,5 @@ structure called `history`. These data can be saved to a file or rendered with
 The animation is saved as a `.gif` file. Its name contains all simulation
 paramaters.
 
-![Impulsively started NACA0012](assets/My-naca0012_np100_dt005_T5_dv001_eps001.gif)
+![Impulsively started NACA0012](docs/assets/My-naca0012_np100_dt005_T5_dv001_eps001.gif)
 
