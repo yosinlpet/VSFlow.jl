@@ -6,6 +6,10 @@ CurrentModule = VSFlow
 
 *An inviscid planar flow model with vortex shedding for external aerodynamics*
 
+This library allows the analysis of rigid airfoils in motion in non-viscous
+fluids. All aerodynamic coefficients are computed by means 3-different methods all
+relying on analytical integration over the discretized body.
+
 Documentation for [VSFlow](https://github.com/yosinlpet/VSFlow.jl).
 
 ## Installation
