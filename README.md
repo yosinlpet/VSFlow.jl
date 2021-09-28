@@ -18,7 +18,7 @@ relying on analytical integration over the discretized body.
 
 ## Installation
 
-PotentialFlow can be installed using the Julia package manager. From the Julia REPL, type ] to enter the Pkg REPL mode and run
+VSFlow can be installed using the Julia package manager. From the Julia REPL, type ] to enter the Pkg REPL mode and run
 
 ```julia
 pkg> add VSFlow

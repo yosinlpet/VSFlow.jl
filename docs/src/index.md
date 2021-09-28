@@ -14,7 +14,7 @@ Documentation for [VSFlow](https://github.com/yosinlpet/VSFlow.jl).
 
 ## Installation
 
-PotentialFlow can be installed using the Julia package manager. From the Julia REPL, type ] to enter the Pkg REPL mode and run
+VSFlow can be installed using the Julia package manager. From the Julia REPL, type ] to enter the Pkg REPL mode and run
 
 ```julia
 pkg> add VSFlow
