@@ -1,8 +1,8 @@
 #!/usr/bin/env julia
-# File              : VSFlow.jl
+# File              : src/VSFlow.jl
 # Author            : Denis Dumoulin <denis.dumoulin@uclouvain.be>
 # Date              : 30.08.2021
-# Last Modified Date: 17.09.2021
+# Last Modified Date: 28.09.2021
 module VSFlow
 
 using LinearAlgebra
@@ -23,7 +23,7 @@ export History, getimpulse, getboundpotential, plotaero, plotcps, plotϕs
 PROFILE object
 """
 mutable struct Profile
-	profile::Function
+	profileshape::Function
 	N::Int64
 	panels::Array{LinearPanel, 1}
 	V::Float64
@@ -63,6 +63,7 @@ mutable struct Profile
 	sheet_size::Int64
 	last_vp_ind::Int64
     islumped::Bool
+
 	profID::String
     history::History
     isgaussian::Bool
@@ -143,7 +144,7 @@ function Profile(; id, profileshape::Function, x0, ẋ0, N, dt, T,
 end
 
 function copier!(p::Profile, p2::Profile)
-	p.profile = p2.profile
+	p.profileshape = p2.profileshape
 	p.N = p2.N
 	p.panels = p2.panels
 	p.V = p2.V
@@ -192,10 +193,10 @@ end
 
 Generate a profile with a wedged trailing edge.
 """
-function genprofile(profile::Function, N::Int64, profID, position::Array)
+function genprofile(profileshape::Function, N::Int64, profID, position::Array)
 	θ = range(0, pi, length=N÷2 + 1)
 	x = @. .5cos(θ) + .5
-    ye, yi = profile(x)
+    ye, yi = profileshape(x)
 
 	L = []
 	for i in 1:length(x)-1
