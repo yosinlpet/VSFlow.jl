@@ -4,13 +4,13 @@
 <img width="400px" src="https://github.com/yosinlpet/VSFlow.jl/blob/main/docs/src/assets/logo-dark.svg"/>
 </p>
 
+*An inviscid planar flow model with vortex shedding for external aerodynamics*
+
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://yosinlpet.github.io/VSFlow.jl/stable)
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://yosinlpet.github.io/VSFlow.jl/dev)
 [![Build Status](https://github.com/yosinlpet/VSFlow.jl/workflows/CI/badge.svg)](https://github.com/yosinlpet/VSFlow.jl/actions)
 [![Coverage](https://codecov.io/gh/yosinlpet/VSFlow.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/yosinlpet/VSFlow.jl)
 [![Coverage](https://coveralls.io/repos/github/yosinlpet/VSFlow.jl/badge.svg?branch=master)](https://coveralls.io/github/yosinlpet/VSFlow.jl?branch=master)
-
-*An inviscid planar flow model with vortex shedding for external aerodynamics*
 
 This library allows the analysis of rigid airfoils in motion in non-viscous
 fluids. All aerodynamic coefficients are computed by means 3-different methods all
