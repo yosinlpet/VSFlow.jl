@@ -681,13 +681,13 @@ function setcoeffnoca!(p::Profile, idx, bdorder)
 	u = 2p.old_panel.b/p.dt
 	energyflux = sum(map((pa, γL, γR)->getenergyflux(pa, γL, γR, p.ω, 0, 0, Xp, Yp, Xp, Yp), p.panels, p.γs[1:end-1], p.γs[2:end]))
 	vorticityflux = p.oldγg*u*([p.trailing[2]-Yp, Xp - p.trailing[1], -.5norm2.((p.trailing - p.pivot_location)...)])
-	Δm = sum(map(pa->getangularimpulsecorrection(pa, p.ω, 0, 0, p.Ut, p.Vt, Xp, Yp, Xp, Yp), p.panels))
+	Δm = sum(map(pa->getangularimpulsecorrection(pa, p.ω, p.Ut, p.Vt, p.Ut, p.Vt, Xp, Yp, Xp, Yp), p.panels))
 
 	f = energyflux - backwarddifference(panels_impulse, oldnocaimpulse, p.dt) - vorticityflux
-	cd, cl, cm = 2f
+	cd, cl, cm = f
 
     p.history.NP[idx, :] = panels_impulse
-    p.history.acn[idx, :] = [cd, cl, cm + Δm]
+    p.history.acn[idx, :] = 2*[cd, cl, cm + Δm]
 end
 
 """
@@ -745,8 +745,6 @@ Simulate the testcase.
  - `bdorder = 4`: Order of the backward difference schemes for time derivatives.
 """
 function profilerun(p::Profile, accfunc; animate=false, is4thorder=true, bdorder=4)
-	run(`echo "==================================================================="`)
-	run(pipeline(`git log`, `head -6`))
 	run(`echo "==================================================================="`)
 	println(" Params:")
 	println("---------")
