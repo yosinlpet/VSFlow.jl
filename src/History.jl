@@ -79,6 +79,18 @@ function getlastvalues(h::History, sym::Symbol, i, n)
 end
 
 """
+    dumphistory(h::History, filename::String)
+
+Dump the whole history in a file.
+"""
+function dumphistory(h::History, filename::String)
+    io = open(filename, "w")
+    open(filename, "w") do io
+        writedlm(io, [h.t h.X h.Ẋ h.acp h.acn h.aci h.P h.NP h.Γ h.θ])
+    end
+end
+
+"""
     plotaero(h::history, save=false)
 
 Plot the aerodynamic coefficients obtained with all methods.
