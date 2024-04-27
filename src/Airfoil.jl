@@ -79,6 +79,34 @@ heavepitch(h0, αmax, ψ1, ψ2, strouhal) = t -> begin
   return [[-t, Y, α], [-1, Ẏ, α̇], [0, Ÿ, α̈]]
 end
 
+heavepitch(h0, θ0, κ, isReal=true) = t -> begin
+  ω = 2κ
+
+  Y = -1im * h0 * exp(1im * ω * t)
+  Yd = 1im * ω * Y
+  Ydd = -(ω^2) * Y
+
+  a = deg2rad(θ0) * exp(1im * ω * t)
+  ad = 1im * ω * a
+  add = -ω^2 * a
+  isReal && return [[-t, real(Y), real(a)], [-1, real(Yd), real(ad)], [0, real(Ydd), real(add)]]
+  return [[-t, Y, a], [-1, Yd, ad], [0, Ydd, add]]
+end
+
+heavepitch2(h0, αmax, ψ1, ψ2, strouhal) = t -> begin
+  ω = strouhal * pi / h0
+
+  Y = h0 * sin(ω * t + deg2rad(ψ1))
+  Ẏ = ω * h0 * cos(ω * t + deg2rad(ψ1))
+  Ÿ = -(ω^2) * h0 * sin(ω * t + deg2rad(ψ1))
+
+  θ0 = atan(ω * h0) - deg2rad(αmax)
+  α = -θ0 * sin(ω * t + deg2rad(ψ2))
+  α̇ = -ω * θ0 * cos(ω * t + deg2rad(ψ2))
+  α̈ = ω^2 * θ0 * sin(ω * t + deg2rad(ψ2))
+  return [[-t, Y, α], [-1, Ẏ, α̇], [0, Ÿ, α̈]]
+end
+
 """
     circularmotion(R, strouhal)(t)
 

@@ -17,7 +17,7 @@ include("VortexElement.jl")
 include("Airfoil.jl")
 include("History.jl")
 
-export uniform, heavepitch, circularmotion
+export uniform, heavepitch, circularmotion, heavepitch2
 export naca00, gaw1, circle, ellipse
 export Profile, profilerun
 export History, getimpulse, getboundpotential, plotaero, plotcps, plotϕs
@@ -103,7 +103,9 @@ function Profile(; id, profileshape::Function, x0, ẋ0, N, dt, T,
   islumped = (lumpargs != zeros(3))
   η, Tmin, sheet_size = lumpargs
 
-  x0[1] -= 0.25
+  # b = 1 / 3.0
+  b = 0.25
+  x0[1] -= b
   panels = genprofile(profileshape, N, id, x0[1:end-1])
   γs = zeros(N + 1)
   average_length = sum(2 .* map(p -> p.b, panels)) / N
@@ -114,7 +116,7 @@ function Profile(; id, profileshape::Function, x0, ẋ0, N, dt, T,
   islumped && (fname = fname * "_lump_errMax" * string(η) * "_Tmin" * string(Tmin) * "_ss" * string(sheet_size))
   fname = replace(fname, "." => "")
 
-  pivot_location = [x0[1] + 0.25, x0[2]]
+  pivot_location = [x0[1] + b, x0[2]]
   V = sum(map(pa -> getbodyvolume(pa, pivot_location...), panels))
   for p in panels
     setangle!(p, x0[end], pivot_location)
